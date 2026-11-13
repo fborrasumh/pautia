@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0F2237">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; media-src blob: data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="author" content="Fernando Borrás Rocher; Elena Caride Miana">
+<meta name="description" content="PautIA: registro del procedimiento en la consulta de medicina estética. Productos con lote y caducidad, reconstitución de toxina, dosis máxima de anestésico, mapa facial de puntos con unidades o volumen y aviso en zonas de riesgo vascular, parámetros de aparatología con la fluencia calculada y hoja de tratamiento en Word. Lee la ficha de AnamnesIA y deja la sesión lista para SeguimIA. Sin IA y sin conexión.">
+<title>PautIA · El procedimiento junto a la camilla: cálculos, mapa y trazabilidad</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --tinta:#0F2237; --acero:#2E4B6B; --acero-claro:#7C93AC; --gris:#5D7691;
+  --papel:#F3F6FA; --blanco:#FFFFFF; --linea:#D8E0E9; --linea-2:#E8EEF4;
+  --brasa:#E4572E; --brasa-osc:#C9441F; --brasa-suave:#FDEBE4;
+  --forjado:#0E7C6B; --forjado-suave:#E0F3EE; --aviso:#8A3617;
+  --c-ctx:#1F6FB2; --c-comp:#6B4FD8; --c-rda:#0E8C7A; --c-tema:#C98200; --c-eval:#E4572E; --c-final:#2E4B6B;
+  --sombra:0 1px 0 rgba(15,34,55,.05), 0 14px 34px -22px rgba(15,34,55,.45);
+  --sombra-alta:0 2px 0 rgba(15,34,55,.04), 0 22px 50px -24px rgba(15,34,55,.55);
+  --r:14px;
+  --display:"Bricolage Grotesque",Georgia,serif;
+  --texto:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:84px}
+a{color:var(--acero)}
+:focus-visible{outline:3px solid var(--brasa);outline-offset:2px;border-radius:6px}
+.hidden{display:none!important}
+svg.i{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+code{font-family:var(--mono);font-size:.85em;background:var(--linea-2);padding:1px 5px;border-radius:5px}
+
+/* Barra superior */
+.topbar{position:sticky;top:0;z-index:40;background:var(--tinta);color:#EAF1F7;box-shadow:0 6px 24px -14px rgba(0,0,0,.6)}
+.tb-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:14px}
+.logo{background:none;border:0;color:#fff;font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.03em;cursor:pointer;padding:2px 4px;display:flex;align-items:center;gap:8px}
+.logo em{font-style:normal;color:var(--brasa)}
+.logo .anv{width:30px;height:30px;border-radius:9px;background:var(--brasa);display:grid;place-items:center;color:#fff}
+.stepper{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
+.sdot{display:flex;align-items:center;gap:7px;background:none;border:0;color:#8FA7BE;font:600 13px var(--texto);padding:6px;cursor:pointer;border-radius:10px;white-space:nowrap}
+.sdot:disabled{cursor:not-allowed;opacity:.45}
+.sdot .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid #3E5C7D;font-size:12px;color:#A9C0D4;transition:all .2s}
+.sdot .n svg{width:14px;height:14px}
+.sdot[data-state="done"] .n{background:var(--forjado);border-color:var(--forjado);color:#fff}
+.sdot[data-state="now"]{color:#fff}
+.sdot[data-state="now"] .n{background:var(--brasa);border-color:var(--brasa);color:#fff;box-shadow:0 0 0 4px rgba(228,87,46,.25)}
+.sdot:not(:disabled):hover{background:rgba(255,255,255,.06)}
+.sline{flex:0 1 26px;height:2px;background:#2F4A68;min-width:6px}
+.sline.on{background:var(--forjado)}
+.tb-tools{display:flex;gap:6px}
+.tb-btn{background:transparent;border:1px solid #3E5C7D;color:#C9D8E6;border-radius:9px;padding:6px 10px;font:600 13px var(--texto);cursor:pointer;display:flex;align-items:center;gap:6px}
+.tb-btn:hover{border-color:var(--brasa);color:#fff}
+.progress{height:4px;background:#1E3550}
+.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brasa),#F59E0B);transition:width .4s}
+@media(max-width:960px){.sdot .lbl{display:none}.sdot[data-state="now"] .lbl{display:inline}}
+@media(max-width:720px){
+  .tb-in{flex-wrap:wrap;gap:8px}
+  .stepper{order:3;flex-basis:100%;justify-content:space-between}
+  .sdot[data-state="now"] .lbl{display:none}
+  .tb-btn .lbl{display:none}
+}
+
+/* Pantallas */
+main{max-width:1180px;margin:0 auto;padding:26px 16px 40px}
+.screen{display:none}
+.screen.on{display:block}
+@media(prefers-reduced-motion:no-preference){.screen.on{animation:rise .35s cubic-bezier(.2,.7,.3,1) both}@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}}
+.sh{display:flex;gap:18px;align-items:flex-start;margin:4px 0 22px}
+.sh-ico{width:64px;height:64px;border-radius:18px;background:var(--c,var(--brasa));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 12px 24px -14px var(--c,var(--brasa))}
+.sh-ico svg{width:32px;height:32px}
+.sh-step{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acero-claro);margin:4px 0}
+.sh h2{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.025em;line-height:1.05;margin:0 0 6px}
+.sh-lede{margin:0;color:var(--gris);font-size:16.5px;max-width:70ch}
+@media(max-width:600px){.sh-ico{width:48px;height:48px;border-radius:14px}.sh-ico svg{width:24px;height:24px}}
+
+.card{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra);padding:20px;margin-bottom:18px}
+.card h3{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-.01em;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+.card h3 .num{width:26px;height:26px;border-radius:8px;background:var(--tinta);color:#fff;font:700 13px var(--mono);display:grid;place-items:center}
+.card .sub{margin:0 0 14px;color:var(--gris);font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;align-items:start}
+.sticky{position:sticky;top:96px}
+@media(max-width:900px){.cols{grid-template-columns:1fr}.sticky{position:static}}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+label,.lab{display:block;font-size:13.5px;font-weight:600;margin:0 0 6px;color:var(--acero)}
+label small,.lab small{font-weight:500;color:var(--acero-claro)}
+input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:11px 13px;border:1.5px solid var(--linea);border-radius:10px;font-family:var(--texto);font-size:15px;color:var(--tinta);background:#fff;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acero-claro);box-shadow:0 0 0 4px rgba(124,147,172,.18)}
+input.bad{border-color:var(--brasa);box-shadow:0 0 0 4px rgba(228,87,46,.15)}
+textarea{resize:vertical;min-height:96px;line-height:1.5}
+input::placeholder,textarea::placeholder{color:#9DB0C2}
+.field{margin-bottom:16px}
+.help{font-size:12.8px;color:var(--gris);margin:6px 0 0}
+.help b{color:var(--acero)}
+
+button{font-family:var(--texto);cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;font-weight:600;font-size:15px;border:1.5px solid transparent;padding:11px 18px;transition:transform .08s,background .15s,border-color .15s;text-decoration:none;line-height:1.2}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--brasa);color:#fff;box-shadow:0 8px 18px -10px var(--brasa)}
+.btn-primary:hover{background:var(--brasa-osc)}
+.btn-big{font-size:17px;padding:14px 24px;border-radius:13px}
+.btn-dark{background:var(--tinta);color:#fff}
+.btn-dark:hover{background:#1c3656}
+.btn-ghost{background:#fff;border-color:var(--linea);color:var(--acero)}
+.btn-ghost:hover{border-color:var(--acero-claro);background:#F7FAFC}
+.btn-ok{background:var(--forjado);color:#fff}
+.btn-ok:hover{background:#0b6457}
+.btn-word{background:#2B579A;color:#fff}
+.btn-word:hover{background:#1e3f7a}
+.btn-sm{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#fff;border:1.5px solid var(--linea);border-radius:999px;padding:7px 13px;font-size:13.5px;color:var(--acero);cursor:pointer;display:inline-flex;align-items:center;gap:6px;line-height:1.25;text-align:left}
+.chip:hover{border-color:var(--brasa);color:var(--brasa)}
+.chip[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.chip.mini-ex{font-size:12.5px;padding:4px 10px;border-style:dashed}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1.5px solid var(--linea);background:#fff;border-radius:9px;padding:7px 11px;font-size:13.5px;font-weight:600;color:var(--acero)}
+.seg button:hover{border-color:var(--acero-claro)}
+.seg button[aria-pressed="true"]{background:var(--tinta);border-color:var(--tinta);color:#fff}
+
+.meto{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.meto button{text-align:left;background:#fff;border:1.5px solid var(--linea);border-radius:12px;padding:10px 12px;color:var(--tinta)}
+.meto button b{display:block;font-size:14px}
+.meto button span{display:block;font-size:12.3px;color:var(--gris);line-height:1.35;margin-top:2px}
+.meto button:hover{border-color:var(--acero-claro)}
+.meto button[aria-pressed="true"]{border-color:var(--tinta);box-shadow:0 0 0 2px var(--tinta);background:var(--papel)}
+
+.tip{display:flex;gap:12px;background:#FFF8E6;border:1px solid #F3DDA0;border-radius:12px;padding:13px 15px;font-size:14px;color:#6B4E00;margin-bottom:18px}
+.tip svg{width:22px;height:22px;color:#C98200;flex:none;margin-top:1px}
+.tip strong{color:#523B00}
+.aviso{background:var(--brasa-suave);border:1px solid #F3C7B5;border-radius:12px;padding:13px 15px;font-size:14px;color:var(--aviso);margin-bottom:16px}
+.okbox{background:var(--forjado-suave);border:1px solid #A9DCCF;border-radius:12px;padding:13px 15px;font-size:14px;color:#0B5A4E;margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+/* Inicio */
+.hero{background:var(--tinta);color:#EAF1F7;border-radius:22px;padding:40px 36px;position:relative;overflow:hidden;margin-bottom:26px;box-shadow:var(--sombra-alta)}
+.hero::before{content:"";position:absolute;right:-80px;top:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(228,87,46,.55),transparent 65%)}
+.hero::after{content:"";position:absolute;left:30%;bottom:-140px;width:420px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(14,140,122,.35),transparent 65%)}
+.hero>*{position:relative;z-index:1}
+@media(max-width:600px){.hero{padding:28px 20px;border-radius:18px}}
+.eyebrow{font:600 11.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8FA7BE;margin:0 0 14px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,58px);line-height:.98;letter-spacing:-.035em;margin:0 0 16px;max-width:17ch}
+.hero h1 em{font-style:normal;color:var(--brasa)}
+.hero p.lede{max-width:62ch;font-size:18px;color:#C3D3E2;margin:0 0 24px}
+.hero .actions .btn-ghost{background:transparent;color:#fff;border-color:#4A6787}
+.hero .actions .btn-ghost:hover{border-color:#fff}
+.draft{margin-top:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14.5px}
+.sec-title{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.02em;margin:34px 0 6px}
+.sec-sub{color:var(--gris);margin:0 0 16px}
+.journey{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.jstop{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;position:relative}
+.jstop .ji{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--c);margin-bottom:10px}
+.jstop .ji svg{width:20px;height:20px}
+.jstop b{display:block;font-size:15px;margin-bottom:2px}
+.jstop span{display:block;font-size:13px;color:var(--gris);line-height:1.45}
+.jstop .jn{position:absolute;top:12px;right:14px;font:700 12px var(--mono);color:var(--acero-claro)}
+@media(max-width:900px){.journey{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.journey{grid-template-columns:1fr}}
+
+.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.part{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--linea);border-radius:12px;padding:12px 14px}
+.part .pi{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;flex:none}
+.part b{display:block;font-size:14.5px}
+.part span{display:block;font-size:12.8px;color:var(--gris);line-height:1.4}
+
+.examples{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.excard{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--sombra);position:relative;overflow:hidden;text-align:left;font:inherit;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.excard:hover{transform:translateY(-3px);box-shadow:var(--sombra-alta)}
+.excard::before{content:"";position:absolute;left:0;top:0;right:0;height:5px;background:var(--c)}
+.excard .emo{font-size:32px;line-height:1}
+.excard .area{font:700 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acero-claro)}
+.excard b{font-family:var(--display);font-size:18px;letter-spacing:-.01em;line-height:1.15}
+.excard p{margin:0;font-size:13.5px;color:var(--gris);flex:1}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);border-radius:999px;padding:3px 9px;align-self:flex-start}
+
+/* Clave */
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1;font-family:var(--mono);font-size:14px}
+.eye{width:46px;flex:none;border:1.5px solid var(--linea);background:#fff;border-radius:10px;color:var(--acero);display:grid;place-items:center}
+.light{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:var(--papel);margin-top:14px;font-size:14.5px;font-weight:600}
+.light .bulbo{width:14px;height:14px;border-radius:50%;background:#B8C5D3;box-shadow:0 0 0 4px rgba(184,197,211,.3);flex:none}
+.light[data-s="ok"] .bulbo{background:#16A34A;box-shadow:0 0 0 4px rgba(22,163,74,.22)}
+.light[data-s="err"] .bulbo{background:var(--brasa);box-shadow:0 0 0 4px rgba(228,87,46,.22)}
+.light[data-s="wait"] .bulbo{background:#F59E0B;box-shadow:0 0 0 4px rgba(245,158,11,.25)}
+.olsteps{list-style:none;padding:0;margin:0;counter-reset:o;display:flex;flex-direction:column;gap:12px}
+.olsteps li{counter-increment:o;display:flex;gap:12px;font-size:14.5px;align-items:flex-start}
+.olsteps li::before{content:counter(o);width:28px;height:28px;border-radius:50%;background:var(--brasa-suave);color:var(--brasa);font:700 13px var(--mono);display:grid;place-items:center;flex:none}
+
+/* Acordeones */
+.acc{background:#fff;border:1px solid var(--linea);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--sombra);overflow:hidden}
+.acc>summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:center;gap:12px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary .ai{width:36px;height:36px;border-radius:10px;background:var(--papel);color:var(--acero);display:grid;place-items:center;flex:none}
+.acc[open]>summary .ai{background:var(--tinta);color:#fff}
+.acc>summary b{font-family:var(--display);font-size:17px;display:block}
+.acc>summary small{display:block;color:var(--gris);font-size:13px}
+.acc>summary .chev{margin-left:auto;transition:transform .2s;color:var(--acero-claro)}
+.acc[open]>summary .chev{transform:rotate(180deg)}
+.acc .inner{padding:4px 18px 18px;border-top:1px solid var(--linea-2)}
+.acc .inner>*:first-child{margin-top:14px}
+.prompt-ta{font-family:var(--mono);font-size:12.3px;min-height:130px;background:#FBFDFE}
+
+/* Resumen lateral */
+.sum h3{margin-bottom:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--papel);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font:800 24px var(--display);letter-spacing:-.02em;line-height:1.1}
+.stat span{font-size:12.3px;color:var(--gris)}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.checks li{display:flex;gap:9px;align-items:center;color:var(--gris)}
+.checks li .ck{width:20px;height:20px;border-radius:50%;border:2px solid var(--linea);display:grid;place-items:center;flex:none}
+.checks li.on{color:var(--tinta)}
+.checks li.on .ck{background:var(--forjado);border-color:var(--forjado);color:#fff}
+.checks li .ck svg{width:12px;height:12px}
+.docname{margin-top:14px;padding:11px 13px;border-radius:11px;background:var(--tinta);color:#C3D3E2;font-size:13.5px}
+.docname b{color:#fff}
+
+/* Generación */
+.agents{display:flex;flex-direction:column;gap:10px}
+.agent{background:#fff;border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra);overflow:hidden;transition:border-color .2s}
+.agent-h{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+.agent .ai{width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;flex:none;transition:all .2s}
+.agent .ai svg{width:20px;height:20px}
+.agent-t{flex:1;min-width:0}
+.agent-t b{display:block;font-family:var(--display);font-size:16.5px}
+.agent-t span{display:block;font-size:13px;color:var(--gris)}
+.pill{font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--linea-2);color:var(--gris);white-space:nowrap}
+.agent[data-s="run"]{border-color:#F59E0B}
+.agent[data-s="run"] .ai{background:var(--c);color:#fff;animation:pulse 1s infinite alternate}
+.agent[data-s="run"] .pill{background:#FFF1D6;color:#8A5A00}
+.agent[data-s="ok"] .ai{background:var(--c);color:#fff}
+.agent[data-s="ok"] .pill{background:var(--forjado-suave);color:var(--forjado)}
+.agent[data-s="err"]{border-color:var(--brasa)}
+.agent[data-s="err"] .pill{background:var(--brasa-suave);color:var(--brasa)}
+.agent-b{display:none;padding:4px 18px 16px 72px;font-size:14px;border-top:1px solid var(--linea-2);background:#FBFDFE}
+.agent.open .agent-b{display:block}
+@media(max-width:600px){.agent-b{padding-left:18px}}
+@keyframes pulse{from{transform:scale(1);box-shadow:0 0 0 0 rgba(228,87,46,.5)}to{transform:scale(1.06);box-shadow:0 0 0 10px rgba(228,87,46,0)}}
+.forging{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:var(--tinta);color:#fff;margin-bottom:16px}
+.forging .spark{width:44px;height:44px;border-radius:12px;background:var(--brasa);display:grid;place-items:center;flex:none;animation:pulse 1s infinite alternate}
+.forging.done .spark{background:var(--forjado);animation:none}
+.forging.err .spark{animation:none}
+.forging b{font-family:var(--display);font-size:18px;display:block}
+.forging span{font-size:14px;color:#C3D3E2}
+.mini-list{margin:10px 0 0;padding:0;list-style:none}
+.mini-list li{padding:5px 0;border-bottom:1px solid var(--linea-2)}
+.mini-list li:last-child{border-bottom:0}
+.code{display:inline-block;font:700 11px var(--mono);border-radius:5px;padding:1px 6px;margin-right:6px;background:var(--linea-2);color:var(--acero)}
+
+/* Guía */
+.res-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.res-head h2{font-family:var(--display);font-weight:800;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em;margin:0;flex:1;min-width:240px;line-height:1.1}
+.doc{background:#fff;border:1px solid var(--linea);border-radius:18px;box-shadow:var(--sombra-alta);padding:40px 44px;max-width:900px;margin:0 auto}
+@media(max-width:700px){.doc{padding:22px 16px}}
+.doc-h{border-bottom:3px solid var(--tinta);padding-bottom:18px;margin-bottom:26px}
+.doc-kind{font:600 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brasa);margin:0 0 6px}
+.doc-h h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.025em;line-height:1.05;margin:0 0 12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.meta span{font-size:12.8px;font-weight:600;background:var(--papel);color:var(--acero);border-radius:999px;padding:4px 11px}
+.dsec{margin-bottom:28px}
+.dsec h2{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;margin:0 0 10px;display:flex;align-items:center;gap:10px}
+.dsec h2 .num{width:28px;height:28px;border-radius:8px;background:var(--tinta);color:#fff;font:700 13px var(--mono);display:grid;place-items:center;flex:none}
+.dsec p{margin:0 0 10px;max-width:75ch}
+.sublab{font-size:13px;font-weight:700;color:var(--acero-claro);margin:14px 0 6px}
+.row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--linea-2);font-size:14.5px;align-items:flex-start}
+.row:last-child{border-bottom:0}
+.row .code{margin-top:2px;flex:none}
+.code.cg{background:#E6F0FA;color:var(--c-ctx)}
+.code.ce{background:#EEEAFB;color:var(--c-comp)}
+.code.bl{background:var(--forjado-suave);color:var(--forjado)}
+.code.tm{background:var(--tinta);color:#fff}
+.row .hrs{margin-left:auto;font-size:12.5px;color:var(--gris);white-space:nowrap}
+.blk{font-weight:700;margin:16px 0 4px;display:flex;gap:8px;align-items:baseline}
+.blk small{font-weight:500;color:var(--gris)}
+.tbl-wrap{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{background:var(--tinta);color:#fff;text-align:left;padding:9px 11px;font-size:12.5px;font-weight:700}
+table.t td{padding:9px 11px;border-bottom:1px solid var(--linea-2);vertical-align:top}
+table.t tr:nth-child(even) td{background:#FAFCFE}
+.peso{font-weight:800;color:var(--brasa);white-space:nowrap}
+.note{margin-top:12px;padding:11px 14px;background:var(--papel);border-left:4px solid var(--forjado);border-radius:8px;font-size:14px}
+.demo-flag{background:#FFF8E6;border:1px solid #F3DDA0;color:#6B4E00;border-radius:12px;padding:11px 15px;font-size:14px;margin:0 auto 16px;max-width:900px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo-flag svg{color:#C98200}
+
+/* Navegación inferior */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:35;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--linea)}
+.bn-in{max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.bn-hint{flex:1;text-align:center;font-size:14px;color:var(--gris)}
+.bn-hint b{color:var(--tinta)}
+@media(max-width:600px){.bn-hint{display:none}.bn-in{justify-content:space-between}}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(15,34,55,.55);display:none;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+.modal.on{display:flex}
+.modal-box{background:#fff;border-radius:18px;max-width:760px;width:100%;box-shadow:var(--sombra-alta);overflow:hidden}
+.modal-head{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--tinta);color:#fff}
+.modal-head h2{font-family:var(--display);font-size:22px;margin:0;flex:1}
+.modal-head button{background:transparent;border:1px solid #4A6787;color:#fff;border-radius:9px;padding:6px 10px}
+.modal-body{padding:18px 20px 22px}
+.glos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.glos{grid-template-columns:1fr}}
+.glos div{background:var(--papel);border-radius:12px;padding:12px 14px}
+.glos b{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+.glos span{font-size:13.8px;color:var(--acero)}
+.hist{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--linea);border-radius:12px;margin-bottom:8px}
+.hist-t{flex:1;min-width:0;cursor:pointer}
+.hist-t b{display:block;font-size:15px}
+.hist-t span{font-size:12.8px;color:var(--gris)}
+.hist:hover{border-color:var(--acero-claro)}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--linea);background:#fff;color:var(--acero);display:grid;place-items:center;padding:0}
+.iconbtn:hover{border-color:var(--brasa);color:var(--brasa)}
+.empty{text-align:center;color:var(--gris);padding:30px 10px}
+
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--tinta);color:#fff;padding:11px 18px;border-radius:12px;font-size:14.5px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:70;max-width:90vw;text-align:center;box-shadow:var(--sombra-alta)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{max-width:1180px;margin:0 auto;padding:0 16px 30px;font-size:13px;color:#6E8299}
+footer hr{border:0;border-top:1px solid var(--linea);margin:0 0 14px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .topbar,.bottomnav,.res-head,.demo-flag,.okbox,footer,.toast,.modal{display:none!important}
+  main{padding:0;max-width:none}
+  .screen{display:none!important}
+  
+  .doc{box-shadow:none;border:0;padding:0;max-width:none}
+  .dsec{break-inside:avoid-page}
+  table.t th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/* ══ v2 ══ */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.grid3{grid-template-columns:1fr}}
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:960px){.feats{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.feats{grid-template-columns:1fr}}
+.feat{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;border-top:4px solid var(--c)}
+.feat .pi{width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);display:grid;place-items:center;margin-bottom:10px}
+.feat b{display:block;font-family:var(--display);font-size:17px;margin-bottom:3px}
+.feat span{display:block;font-size:13.5px;color:var(--gris);line-height:1.45}
+.importbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--tinta);color:#EAF1F7;border-radius:var(--r);padding:14px 16px;margin-bottom:18px}
+.importbar .pi{width:40px;height:40px;border-radius:11px;background:var(--brasa);display:grid;place-items:center;flex:none}
+.importbar b{display:block;font-size:15px}
+.importbar span{display:block;font-size:13.3px;color:#A9C0D4}
+.importbar .btn-dark{background:#fff;color:var(--tinta)}
+.importbar .btn-dark:hover{background:#EAF1F7}
+.inacc{border-top:1px solid var(--linea-2);margin-top:4px;padding-top:12px}
+.inacc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--acero)}
+.inacc>summary::-webkit-details-marker{display:none}
+.inacc>summary .chev{margin-left:auto;transition:transform .2s;color:var(--acero-claro)}
+.inacc[open]>summary .chev{transform:rotate(180deg)}
+.rec{display:inline-block;font:700 11px var(--texto);background:var(--forjado-suave);color:var(--forjado);border-radius:999px;padding:2px 8px;vertical-align:2px;margin-left:4px}
+.checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.checkgrid{grid-template-columns:1fr}}
+.checkgrid label{display:flex;gap:9px;align-items:center;margin:0;padding:9px 11px;border-radius:10px;background:var(--papel);font-weight:500;color:var(--tinta);cursor:pointer;font-size:14px}
+.checkgrid input{width:18px;height:18px;accent-color:var(--forjado);margin:0}
+.checkgrid label:has(input:checked){background:var(--forjado-suave)}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;border:2px dashed var(--linea);border-radius:14px;padding:24px;cursor:pointer;color:var(--acero);margin:0;font-weight:500}
+.drop svg{width:30px;height:30px;color:var(--brasa)}
+.drop b{font-size:15px;color:var(--tinta)}
+.drop span{font-size:13px;color:var(--gris)}
+.drop.over,.drop:hover{border-color:var(--brasa);background:var(--brasa-suave)}
+
+
+
+/* selector de idioma (65-i18n) */
+.tb-lang{display:flex;align-items:center}.tb-sel{background:transparent;border:1px solid #3E5C7D;color:#C9D8E6;border-radius:9px;padding:6px 8px;font:600 13px var(--texto);cursor:pointer;max-width:120px}.tb-sel:hover{border-color:var(--brasa);color:#fff}.tb-sel:focus-visible{outline:2px solid var(--brasa);outline-offset:2px}.tb-sel option{color:#0F2237;background:#fff}
+/* ══ Estilos propios de la app (se añaden a forja-base.css). Prefijo fa- para no chocar con clases de Forja ══ */
+.logo .anv{background:linear-gradient(135deg,var(--brasa),#C98200)}
+.hero{padding:44px 38px 30px}.hero h1{max-width:20ch}.fa-inicio{margin:14px 0 0;font-size:14px;color:#C3D3E2}.fa-inicio:empty{display:none}.fa-inicio b{color:#fff}
+/* autores con ORCID */
+.fa-autores{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)}.fa-autores-cap{font:600 11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#8FA7BE;width:100%;margin-bottom:-4px}
+.fa-autor{display:flex;gap:11px;align-items:center}.fa-autor b{display:block;color:#fff;font:700 16px var(--display)}.fa-autor small{display:block;color:#9DB6CD;font-size:12.5px;max-width:34ch}.fa-av{width:44px;height:44px;border-radius:14px;background:var(--c);color:#fff;display:grid;place-items:center;font:800 15px var(--display);flex:none;box-shadow:0 10px 20px -12px var(--c)}.fa-x{font:300 26px var(--display);color:#5D7C9B}
+.fa-orcid{display:block;margin-top:2px;font:600 11.5px var(--mono);letter-spacing:.02em;color:#7FD6C4!important;text-decoration:none}.fa-orcid:hover{text-decoration:underline}.fa-idea{width:100%;margin:2px 0 0;font-size:13px;color:#9DB6CD;max-width:72ch}
+/* zonas «dónde va cada cosa» */
+.zonas{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.zonas{grid-template-columns:1fr}}.zona{border-radius:16px;padding:14px 16px;border:2px solid}.zona.l{border-color:#9FD9C4;background:var(--forjado-suave)}.zona.n{border-color:#E9C46A;background:#FFF8E6}.zona h4{margin:0 0 6px;font-family:var(--display);font-size:18px}.zona ul{margin:0;padding-left:18px;font-size:14px;line-height:1.7}
+.sec-title+.zonas,.sec-title+.journey{margin-top:14px}
+/* formularios y utilidades */
+.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--linea);border-radius:10px;font:15px var(--texto);background:#fff;color:var(--tinta)}.field textarea{line-height:1.55;resize:vertical}.field label{display:block;font:700 13px var(--texto);color:var(--acero);margin-bottom:5px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brasa);box-shadow:0 0 0 3px rgba(228,87,46,.18)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:760px){.grid3,.grid2{grid-template-columns:1fr}}
+.card .actions{margin-top:12px}.card h3{margin-top:0}.fa-chk{display:flex;gap:8px;align-items:center;font:500 14.5px var(--texto);cursor:pointer}
+.fa-chip{display:inline-block;font:700 11.5px var(--texto);border-radius:999px;padding:3px 10px;background:var(--linea-2);color:var(--acero)}.fa-chip.ok{background:var(--forjado-suave);color:#0B5A4E}.fa-chip.aviso{background:#FFF1D6;color:#7A4B00}.fa-chip.error{background:var(--brasa-suave);color:var(--aviso)}
+.fa-pre{white-space:pre-wrap;font:12.5px/1.5 var(--mono);background:#0B1C2E;color:#D6E4F0;border-radius:12px;padding:12px;max-height:300px;overflow:auto}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--linea);border-top-color:var(--brasa);border-radius:50%;animation:fa-s .8s linear infinite;vertical-align:-2px}@keyframes fa-s{to{transform:rotate(360deg)}}
+.fa-foot{max-width:1180px;margin:10px auto 0;padding:0 16px 110px}.fa-foot hr{border:0;border-top:1px solid var(--linea);margin:0 0 16px}.fa-foot p{margin:0;font-size:12.8px;color:#6E8299;max-width:76ch;line-height:1.55}
+.glos div{display:block;margin-bottom:12px}.glos b{display:block}
+table{border-collapse:collapse;width:100%;font-size:13.8px}th{background:var(--papel);color:var(--acero);font:700 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;text-align:left}td,th{padding:10px 12px;border-bottom:1px solid var(--linea-2);vertical-align:top}.table-wrap{overflow-x:auto}
+/* barra superior con muchos pasos: solo el actual lleva nombre (evita desbordes) */
+.tb-in{gap:10px}.stepper{min-width:0;flex:1 1 auto;justify-content:center;gap:2px}.sdot:not([data-state="now"]) .lbl{display:inline}.sdot{padding-left:4px;padding-right:4px}.sline{min-width:8px;flex:0 1 22px}.logo,.tb-tools{flex:none}
+@media(max-width:900px){.tb-btn .lbl{display:none}}@media(max-width:720px){.hero{padding:28px 20px 24px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ── PautIA ── */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}label.btn{cursor:pointer}
+.p-f3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 12px}.p-f2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.p-bloq{border-left:5px solid #B3203A}.p-bloq p{display:flex;gap:8px;align-items:center;color:#9b1c31;font-weight:600;margin:4px 0}
+.p-prod{border-left:6px solid var(--c)}.p-ph{display:flex;gap:10px;align-items:center;margin-bottom:6px}.p-ph select{flex:1}
+.p-dot{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--c);flex:0 0 14px}
+.p-calc{background:#f6f7fb;border:1px solid #dfe4ec;border-radius:10px;padding:8px 12px;font-weight:600;font-variant-numeric:tabular-nums}
+.p-apa input{width:100%;min-width:64px}.p-apa td:first-child input{min-width:120px}.p-flu{font-weight:700;font-variant-numeric:tabular-nums}
+.p-cols{display:grid;grid-template-columns:minmax(300px,1fr) 1.15fr;gap:16px;align-items:start}
+.p-map{position:sticky;top:calc(80px + env(safe-area-inset-top,0px))}
+.p-prods{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.p-pb{display:inline-flex;align-items:center;gap:6px;padding:4px 12px 4px 8px;border:2px solid var(--c);border-radius:999px;cursor:pointer;min-height:34px;background:#fff}.p-pb:has(input:checked){background:var(--c);color:#fff}
+.p-defc{display:flex;align-items:flex-end;gap:8px}.p-defc .field{margin:0;max-width:170px}.p-defc .muted{padding-bottom:10px}
+.p-cara{width:100%;max-width:420px;display:block;margin:6px auto;cursor:crosshair;touch-action:manipulation}
+.p-z{fill:transparent;stroke-dasharray:4 3;stroke-width:1.3;pointer-events:none}.p-r2{fill:rgba(179,32,58,.13);stroke:#B3203A}.p-r1{fill:rgba(201,130,0,.13);stroke:#9a6200}.p-r0{stroke:#7b8797;fill:transparent}
+.p-pt{cursor:pointer}.p-pt circle{stroke:#fff;stroke-width:1.6}.p-pt text{font:700 8px system-ui,sans-serif;fill:#fff;pointer-events:none}.p-sel circle{stroke:#0F2237;stroke-width:2.6}
+.p-lado{font:600 9px system-ui,sans-serif;fill:#4A6075}
+.p-mapa-acc{display:flex;flex-direction:column;gap:8px}.p-addz{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.p-ley{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.p-k{display:inline-block;width:16px;height:12px;border-radius:6px;border:1.5px dashed}.p-k.p-r2{background:rgba(179,32,58,.13);border-color:#B3203A}.p-k.p-r1{background:rgba(201,130,0,.13);border-color:#9a6200}
+.p-tab select,.p-tab input{min-width:120px;width:100%}.p-tab .p-cant{min-width:70px;max-width:90px}.p-trsel td{background:#fff7e6}.p-err{border-left:4px solid #B3203A}
+.p-sn{border:0;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}.p-sn legend{float:left;width:100%;padding:0 0 6px}.p-sn label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.p-hoja h3{margin:18px 0 6px}.p-li{margin:3px 0;padding-left:14px;position:relative}.p-li::before{content:"·";position:absolute;left:3px;font-weight:700}
+@media (max-width:960px){.p-cols{grid-template-columns:1fr}.p-map{position:static}}@media (max-width:560px){.p-f3,.p-f2{grid-template-columns:1fr}}
+@media print{body *{visibility:hidden}#hojaVista,#hojaVista *{visibility:visible}#hojaVista{position:absolute;left:0;top:0;width:100%;box-shadow:none;border:0}}
+.sdot{position:relative}.sdot .lbl{display:inline}.sdot:not([data-state="now"]) .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:root{--gris:#4A6075;--brasa:#C4441E;--brasa-osc:#A93918}.sh-step{color:#4A6075}.fa-foot p{color:#4A6075}
+input[type=checkbox],input[type=radio]{min-width:22px;min-height:22px}.fa-chk{min-height:24px}
+</style></head>
+<body>
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></symbol>
+  <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8M13 12h8M13 18h8"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4M17 5h4M5 17v4M3 19h4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></symbol>
+  <symbol id="i-form" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></symbol>
+<symbol id="i-alerta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.5h.01"/></g></symbol>
+</svg>
+<div class="topbar">
+  <div class="tb-in">
+    <button class="logo" id="goHome" type="button" aria-label="Inicio" data-i18n-attr="aria-label:Inicio"><span class="anv"><svg class="i"><use href="#i-target"/></svg></span><span>Paut<em>IA</em></span></button>
+    <nav class="stepper" id="stepper" aria-label="Pasos" data-i18n-attr="aria-label:Pasos"></nav>
+    <div class="tb-tools"><div class="tb-lang" id="langBox"><select id="selLang" class="tb-sel" aria-label="Idioma" data-i18n-attr="aria-label:Idioma"></select></div><button class="tb-btn" id="btnHelp" type="button"><svg class="i"><use href="#i-help"/></svg><span class="lbl" data-i18n="Ayuda">Ayuda</span></button></div>
+  </div>
+  <div class="progress"><span id="progBar"></span></div>
+</div>
+
+<main id="app">
+<!-- 0 · INICIO: portada con el qué, el para quién y los autores -->
+<section class="screen" data-step="0">
+  <div class="hero">
+    <p class="eyebrow" data-i18n="hero.eyebrow">Kit EstéticIA · Máster de Medicina Estética Integral y Antienvejecimiento · Universidad Miguel Hernández de Elche</p>
+    <h1 data-i18n="hero.h1">Junto a la camilla: <em>cada punto, cada lote</em></h1>
+    <p class="lede" data-i18n="hero.lede">Anota los productos con su lote y caducidad, marca en la cara cada punto con sus unidades o su volumen y registra los parámetros del equipo. La app calcula la reconstitución y la fluencia, suma lo que llevas, avisa en las zonas de riesgo vascular y deja la hoja de tratamiento escrita. Sin IA y sin conexión.</p>
+    <div class="actions"><button class="btn btn-primary btn-big" id="btnStart" type="button"><svg class="i"><use href="#i-play"/></svg><span data-i18n="s.empezar">Empezar</span></button><button class="btn btn-ghost btn-big" id="btnEjemplo" type="button"><svg class="i"><use href="#i-eye"/></svg><span data-i18n="s.ejemplo">Ver un ejemplo</span></button></div>
+    <p class="fa-inicio" id="inicioProj"></p>
+    <div class="fa-autores"><span class="fa-autores-cap" data-i18n="Realizada entre">Realizada entre</span>
+      <div class="fa-autor"><span class="fa-av" style="--c:#E4572E">FB</span><div><b>Fernando Borrás Rocher</b><small>Universidad Miguel Hernández de Elche</small><a class="fa-orcid" href="https://orcid.org/0000-0002-5519-4573" target="_blank" rel="noopener">ORCID 0000-0002-5519-4573</a></div></div><span class="fa-x">×</span>
+      <div class="fa-autor"><span class="fa-av" style="--c:#0E8C7A">EC</span><div><b>Elena Caride Miana</b><small>Dra. Caride Medicina Estética &amp; Antiaging</small><a class="fa-orcid" href="https://orcid.org/0000-0002-7620-4857" target="_blank" rel="noopener">ORCID 0000-0002-7620-4857</a></div></div>
+      <p class="fa-idea">Cuarta app del Kit EstéticIA, diseñado para el alumnado del Máster de Formación Permanente en Medicina Estética Integral y Antienvejecimiento (UMH).</p></div>
+  </div>
+  <h2 class="sec-title" data-i18n="Cómo funciona">Cómo funciona</h2>
+  <div class="journey" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+    <div class="jstop" style="--c:#6B4FD8"><span class="jn">1</span><div class="ji"><svg class="i"><use href="#i-user"/></svg></div><b data-i18n="s.j1b">La sesión</b><span data-i18n="s.j1s">Carga la ficha de AnamnesIA o identifica al paciente.</span></div>
+    <div class="jstop" style="--c:#C98200"><span class="jn">2</span><div class="ji"><svg class="i"><use href="#i-archive"/></svg></div><b data-i18n="s.j2b">Productos y cálculos</b><span data-i18n="s.j2s">Lote, caducidad, reconstitución, anestésico y parámetros del equipo.</span></div>
+    <div class="jstop" style="--c:#E4572E"><span class="jn">3</span><div class="ji"><svg class="i"><use href="#i-target"/></svg></div><b data-i18n="s.j3b">El mapa</b><span data-i18n="s.j3s">Cada punto en la cara, con su cantidad y aviso en las zonas de riesgo.</span></div>
+    <div class="jstop" style="--c:#0E8C7A"><span class="jn">4</span><div class="ji"><svg class="i"><use href="#i-doc"/></svg></div><b data-i18n="s.j4b">La hoja</b><span data-i18n="s.j4s">Hoja de tratamiento en Word y la sesión para SeguimIA.</span></div>
+  </div>
+  <h2 class="sec-title" data-i18n="Dónde va cada cosa">Dónde va cada cosa</h2>
+  <div class="zonas"><div class="zona l"><h4 data-i18n="Siempre en tu ordenador">Siempre en tu ordenador</h4><ul data-i18n="s.zl">
+<li>Las sesiones, los productos y los mapas, en este navegador</li><li>Los cálculos se hacen aquí mismo: la app no usa IA ni conexión</li><li>Usa un identificador en lugar del nombre del paciente</li></ul></div></div>
+</section>
+
+<section class="screen" data-step="1">
+  <header class="sh" style="--c:#6B4FD8"><div class="sh-ico"><svg class="i"><use href="#i-user"/></svg></div><div><p class="sh-step" data-i18n="Paso 1 de 4">Paso 1 de 4</p><h2 data-i18n="Sesión">Sesión</h2><p class="sh-lede" data-i18n="s.ses.lede">Carga la ficha de AnamnesIA o escribe el identificador del paciente y la fecha.</p></div></header>
+  <div id="sesBox"></div>
+</section>
+<section class="screen" data-step="2">
+  <header class="sh" style="--c:#C98200"><div class="sh-ico"><svg class="i"><use href="#i-archive"/></svg></div><div><p class="sh-step" data-i18n="Paso 2 de 4">Paso 2 de 4</p><h2 data-i18n="Productos y cálculos">Productos y cálculos</h2><p class="sh-lede" data-i18n="s.pro.lede">Cada producto con su lote y su caducidad. La reconstitución, el anestésico y la fluencia se calculan solos.</p></div></header>
+  <div id="proBox"></div>
+</section>
+<section class="screen" data-step="3">
+  <header class="sh" style="--c:#E4572E"><div class="sh-ico"><svg class="i"><use href="#i-target"/></svg></div><div><p class="sh-step" data-i18n="Paso 3 de 4">Paso 3 de 4</p><h2 data-i18n="Mapa de puntos">Mapa de puntos</h2><p class="sh-lede" data-i18n="s.map.lede">Elige el producto y toca la cara para añadir un punto. Edita la cantidad, el plano y la técnica en la lista.</p></div></header>
+  <div id="mapBox"></div>
+</section>
+<section class="screen" data-step="4">
+  <header class="sh" style="--c:#0E8C7A"><div class="sh-ico"><svg class="i"><use href="#i-doc"/></svg></div><div><p class="sh-step" data-i18n="Paso 4 de 4">Paso 4 de 4</p><h2 data-i18n="Hoja de tratamiento">Hoja de tratamiento</h2><p class="sh-lede" data-i18n="s.hoj.lede">Revisa los avisos, anota las incidencias y descarga la hoja o la sesión para SeguimIA.</p></div></header>
+  <div id="hojBox"></div>
+</section>
+</main>
+
+<footer class="fa-foot"><hr><p><b>PautIA</b> · Fernando Borrás Rocher · Elena Caride Miana · Universidad Miguel Hernández de Elche; Dra. Caride Medicina Estética & Antiaging. <span data-i18n="f.pie">Herramienta de apoyo para médicos: hace la aritmética y el registro, no decide dosis ni técnica. Manda la ficha técnica de cada producto. Tus datos se guardan solo en este navegador.</span></p></footer>
+<div class="bottomnav"><div class="bn-in"><button class="btn btn-ghost" id="navBack" type="button"><svg class="i"><use href="#i-left"/></svg><span data-i18n="Atrás">Atrás</span></button><div class="bn-hint" id="navHint"></div><button class="btn btn-primary" id="navNext" type="button"><span id="navNextTxt">Siguiente</span><svg class="i"><use href="#i-right"/></svg></button></div></div>
+
+
+<div class="modal" id="mHelp" role="dialog" aria-modal="true" aria-labelledby="mHelpT"><div class="modal-box"><div class="modal-head"><h2 id="mHelpT" data-i18n="Ayuda">Ayuda</h2><button type="button" data-close data-i18n="Cerrar">Cerrar</button></div><div class="modal-body"><div class="glos" id="glos"></div></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>const APP="pautia";const APP_NAME="PautIA";const LOGO_ICON="target";const LANGS_ON=["es", "en", "pt"];
+"use strict";
+/* ── utilidades comunes (todas las apps Forja) ──────────────────────────────
+   Requiere que la app defina antes:  const APP = 'miapp';  (prefijo de almacenamiento)  */
+const $ = id => document.getElementById(id), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ico = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uid = (p = '') => p + Math.random().toString(36).slice(2, 8);
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+const wc = s => (String(s || '').trim().match(/[\p{L}\p{N}]+/gu) || []).length;
+const chunk = (a, n) => { const o = []; for (let i = 0; i < a.length; i += n) o.push(a.slice(i, i + n)); return o; };
+const nf = n => Math.round(n).toLocaleString(typeof locale === 'function' ? locale() : 'es-ES');
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+const slug = s => norm(s).replace(/ /g, '_').slice(0, 40) || 'x';
+function toast(m, ms = 4200) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
+function dl(nombre, contenido, tipo) { const b = contenido instanceof Blob ? contenido : new Blob([contenido], {type: tipo}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 2500); }
+
+/* librerías externas (solo para LEER ficheros: Word, PDF, PowerPoint). Escribir Word/ZIP no necesita ninguna (70-report).
+   Cada librería tiene un espejo: si cdnjs falla (URL retirada, bloqueador, proxy), se prueba jsDelivr con la misma versión.
+   La CSP de build.py admite los dos orígenes. Las URLs están comprobadas contra el paquete npm de esa versión. */
+const LIB = {
+  mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
+  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfw: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  docx: 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js'   // obsoleto: usa wordDeMarkdown / wordDeXml (sin red)
+};
+const LIB_ESPEJO = {
+  [LIB.mammoth]: 'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js',
+  [LIB.jszip]: 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js',
+  [LIB.pdf]: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+  [LIB.pdfw]: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+};
+const LIB_GLOBAL = {[LIB.mammoth]: 'mammoth', [LIB.jszip]: 'JSZip', [LIB.pdf]: 'pdfjsLib', [LIB.docx]: 'docx'};
+const _libNombre = u => (u.match(/\/(?:libs|npm)\/([^/@]+)/) || [, 'externa'])[1];
+const _cargaScript = u => new Promise((ok, ko) => { const s = document.createElement('script'); s.src = u; const tm = setTimeout(() => { s.remove(); ko(); }, 20000); s.onload = () => { clearTimeout(tm); ok(); }; s.onerror = () => { clearTimeout(tm); s.remove(); ko(); }; document.head.appendChild(s); });
+const _libCargadas = {};
+/* cargaLib([LIB.x, …]) carga en orden; cada una prueba cdnjs y luego su espejo; no recarga lo ya cargado */
+async function cargaLib(urls) {
+  for (const u of urls) {
+    const g = LIB_GLOBAL[u]; if ((g && window[g]) || _libCargadas[u]) continue;
+    let hecho = false, v_ok = u;
+    for (const v of [u, LIB_ESPEJO[u]].filter(Boolean)) { try { await _cargaScript(v); hecho = true; v_ok = v; break; } catch {} }
+    if (!hecho) throw new Error(navigator.onLine === false ? t('Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.') : t('No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.', _libNombre(u)));
+    _libCargadas[u] = v_ok;
+  }
+}
+
+/* huella SHA-256 (con alternativa para file:// sin contexto seguro) y canonización estable */
+const canon = v => v === null || typeof v !== 'object' ? JSON.stringify(v) : Array.isArray(v) ? '[' + v.map(canon).join(',') + ']' : '{' + Object.keys(v).filter(k => v[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+function sha256js(bytes) {
+  const pr = []; for (let n = 2; pr.length < 64; n++) if (pr.every(p => n % p)) pr.push(n);
+  const fr = x => Math.floor((x - Math.floor(x)) * 4294967296), K = pr.map(p => fr(Math.cbrt(p))), H = pr.slice(0, 8).map(p => fr(Math.sqrt(p)));
+  const l = bytes.length, pad = new Uint8Array(((l + 9 + 63) >> 6) << 6); pad.set(bytes); pad[l] = 0x80;
+  const dv = new DataView(pad.buffer); dv.setUint32(pad.length - 8, Math.floor(l * 8 / 4294967296)); dv.setUint32(pad.length - 4, (l * 8) >>> 0);
+  const rr = (x, n) => (x >>> n) | (x << (32 - n)), W = new Uint32Array(64);
+  for (let i = 0; i < pad.length; i += 64) {
+    for (let t = 0; t < 16; t++) W[t] = dv.getUint32(i + t * 4);
+    for (let t = 16; t < 64; t++) { const s0 = rr(W[t - 15], 7) ^ rr(W[t - 15], 18) ^ (W[t - 15] >>> 3), s1 = rr(W[t - 2], 17) ^ rr(W[t - 2], 19) ^ (W[t - 2] >>> 10); W[t] = (W[t - 16] + s0 + W[t - 7] + s1) >>> 0; }
+    let [a, b, c, d, e, f, g, hh] = H;
+    for (let t = 0; t < 64; t++) { const S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + K[t] + W[t]) >>> 0, S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & b) ^ (a & c) ^ (b & c), t2 = (S0 + mj) >>> 0; hh = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0; }
+    [a, b, c, d, e, f, g, hh].forEach((v, j) => H[j] = (H[j] + v) >>> 0);
+  }
+  return H.map(v => v.toString(16).padStart(8, '0')).join('');
+}
+async function sha256(str) {
+  const b = new TextEncoder().encode(str);
+  if (window.crypto?.subtle) { try { return [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))].map(x => x.toString(16).padStart(2, '0')).join(''); } catch {} }
+  return sha256js(b);
+}
+
+/* ── persistencia local (IndexedDB). La app define:  let S = {...};  y opcionalmente  const KEYP = () => 'main';  ── */
+const dbP = new Promise((ok, ko) => { const r = indexedDB.open(APP, 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); });
+const kv = async (mode, fn) => { const d = await dbP; return new Promise((ok, ko) => { const tx = d.transaction('kv', mode), q = fn(tx.objectStore('kv')); tx.oncomplete = () => ok(q && q.result); tx.onerror = () => ko(tx.error); }); };
+const _key = () => (typeof KEYP === 'function' ? KEYP() : 'main');
+let _g;
+function guarda() { clearTimeout(_g); _g = setTimeout(() => kv('readwrite', s => s.put(S, _key())).catch(() => toast(t('No se pudo guardar en el navegador (¿demasiado material?)'))), 500); }
+/* guardado inmediato: úsalo justo después de pagar una llamada a la IA, para no perder el resultado si se cierra la pestaña */
+const guardaYa = () => { clearTimeout(_g); return kv('readwrite', s => s.put(S, _key())).catch(() => toast(t('No se pudo guardar en el navegador'))); };
+window.addEventListener('pagehide', () => { clearTimeout(_g); try { kv('readwrite', s => s.put(S, _key())); } catch {} });
+async function cargaEstado(key = _key()) { try { const p = await kv('readonly', s => s.get(key)); return p || null; } catch { return null; } }
+
+/* ── navegación Forja: barra superior, stepper, barra inferior, ventanas, ayuda y ajustes de IA ─────────────
+   La app define (en app.js; se leen al ejecutar, no al cargar el módulo) y llama a iniciaUI() al arrancar:
+     const STEPS  = ['Inicio', 'Paso 1', ...];                   // etiquetas del stepper (la actual se muestra con nombre)
+     const NAV    = [['Empezar',''], ['Siguiente: …','pista'], …]; // [texto del botón «siguiente», pista de la barra inferior] por pantalla
+     const RENDER = {0: pintaInicio, 1: pintaX, …};               // funciones que pintan cada pantalla al entrar
+     const GLOS   = [['Título','Texto'], …];                       // ayuda
+   Idiomas: STEPS, NAV, GLOS y HUBS se escriben en español y se traducen con t() (módulo 65-i18n; diccionario I18N en src/i18n.js).
+   Opcionales:  const CAN_NEXT = i => true|'mensaje';  // validación antes de avanzar
+                const HUBS = ['Glosario', 'Progreso'];  // secciones fuera del recorrido lineal: pantallas con data-step = STEPS.length + k.
+                // Al entrar en una sección el stepper muestra solo su nombre, la barra de progreso se vacía y «Atrás»/«Siguiente» vuelven al inicio. */
+let step = 0;
+const esHub = i => i >= STEPS.length;
+function buildStepper() {
+  if (esHub(step)) {
+    const nombre = (typeof HUBS !== 'undefined' && HUBS[step - STEPS.length]) || '';
+    $('stepper').innerHTML = `<button class="sdot" type="button" data-go="0" data-state="done"><span class="n">${ico('left')}</span><span class="lbl">${esc(t('Inicio'))}</span></button><span class="sline on"></span><button class="sdot" type="button" data-state="now" aria-current="page"><span class="n">${ico(typeof LOGO_ICON === 'string' ? LOGO_ICON : 'bulb')}</span><span class="lbl">${esc(t(nombre))}</span></button>`;
+    $$('#stepper [data-go]').forEach(b => b.onclick = () => go(+b.dataset.go)); return;
+  }
+  $('stepper').innerHTML = STEPS.map((s, i) => `${i ? `<span class="sline${i <= step ? ' on' : ''}"></span>` : ''}<button class="sdot" type="button" data-go="${i}" data-state="${i < step ? 'done' : i === step ? 'now' : ''}" ${i === step ? 'aria-current="step"' : ''}><span class="n">${i < step ? ico('check') : i === 0 ? ico(typeof LOGO_ICON === 'string' ? LOGO_ICON : 'bulb') : i}</span><span class="lbl">${esc(t(s))}</span></button>`).join('');
+  $$('#stepper [data-go]').forEach(b => b.onclick = () => go(+b.dataset.go));
+}
+function updateNav() { const N = NAV[step] || ['Volver al inicio', '']; $('navBack').classList.toggle('hidden', step === 0 || esHub(step)); $('navNextTxt').textContent = t(N[0]); $('navHint').textContent = N[1] ? t(N[1]) : ''; }
+function go(i) {
+  step = i; $$('.screen').forEach(s => s.classList.toggle('on', +s.dataset.step === i)); $('progBar').style.width = esHub(i) ? '0%' : (i / (STEPS.length - 1) * 100) + '%';
+  (RENDER[i] || (() => {}))(); buildStepper(); updateNav(); window.scrollTo({top: 0, behavior: 'instant'});
+}
+$('goHome').onclick = () => go(0);
+$('navBack').onclick = () => { if (step > 0) go(step - 1); };
+$('navNext').onclick = () => { if (esHub(step)) return go(0); const ok = typeof CAN_NEXT === 'function' ? CAN_NEXT(step) : true; if (ok !== true && ok) return toast(ok); go(step === STEPS.length - 1 ? 0 : step + 1); };
+
+/* ventanas modales (Escape y clic fuera cierran; data-close en el botón) */
+const _cierres = {};   // id de modal → función a ejecutar al cerrar
+$$('.modal').forEach(m => m.addEventListener('click', ev => { if (ev.target === m || ev.target.hasAttribute('data-close')) { m.classList.remove('on'); _cierres[m.id]?.(); } }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $$('.modal.on').forEach(m => { m.classList.remove('on'); _cierres[m.id]?.(); }); });
+/* Ajustes de IA. El modelo se elige en un <select> (no en <input list>: un <datalist> con el campo ya relleno solo muestra
+   las opciones que coinciden con lo escrito, y la lista «no se carga» a ojos de la persona). «Otro modelo…» abre un campo libre. */
+const OTRO_MODELO = '__otro';
+function pintaModelos(pv = getProv()) {
+  const sel = $('selModelo'); if (!sel) return;
+  let ml = []; try { ml = JSON.parse(localStorage.getItem(APP + '_models_' + pv) || '[]'); } catch {}
+  const act = getMod(pv), lista = [...new Set([act, ...ml, PROV[pv].m])].filter(Boolean);
+  sel.innerHTML = lista.map(m => `<option value="${esc(m)}">${esc(m)}${m === act ? ' · ' + esc(t('actual')) : ''}${ml.length && !ml.includes(m) ? ' · ' + esc(t('no aparece en tu clave')) : ''}</option>`).join('')
+    + `<option value="${OTRO_MODELO}">${esc(t('Otro modelo (escribirlo)…'))}</option>`;
+  sel.value = act; $('modelo').value = act; $('modelo').hidden = true;
+}
+function cargaIA() { const pv = getProv(); $('selProv').value = pv; $('apiKey').value = getKey(pv); $('apiKey').placeholder = KPH[pv]; pintaModelos(pv); }
+/* pide a la API del proveedor los modelos de ESA clave y los pone en el desplegable (silencio: sin mensaje si falta la clave) */
+async function cargaModelos(silencio = false) {
+  const st = $('iaEstado'), pv = getProv();
+  if (!getKey(pv)) { if (!silencio) st.textContent = t('Primero pega tu clave.'); return []; }
+  st.textContent = t('Cargando los modelos de tu clave…');
+  try {
+    const l = await listaModelos(pv); if (pv !== getProv()) return l;
+    localStorage.setItem(APP + '_models_' + pv, JSON.stringify(l)); pintaModelos(pv);
+    st.textContent = l.length ? t('{0} modelos disponibles en tu clave: elígelo en el desplegable.', l.length) : t('Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».');
+    return l;
+  } catch (e) { st.textContent = e.message; return []; }
+}
+const KPH = {openai: 'sk-proj-…', gemini: 'AIza…', anthropic: 'sk-ant-…'};
+/* iniciaUI(): llámala UNA vez desde app.js, al final, justo antes de go(0). Enlaza la ayuda y los ajustes de IA.
+   (No se hace al cargar el módulo porque GLOS y el resto de constantes de la app aún no existen en ese momento.) */
+function iniciaUI() {
+  if (typeof initI18n === 'function') initI18n();
+  window.addEventListener('langchange', () => { if ($('btnHelp')) $('glos').innerHTML = (typeof GLOS !== 'undefined' ? GLOS : []).map(g => `<div><b>${esc(t(g[0]))}</b><span>${esc(t(g[1]))}</span></div>`).join(''); (RENDER[step] || (() => {}))(); buildStepper(); updateNav(); if ($('mIA') && $('mIA').classList.contains('on')) cargaIA(); });
+  if ($('btnHelp')) { $('glos').innerHTML = (typeof GLOS !== 'undefined' ? GLOS : []).map(g => `<div><b>${esc(t(g[0]))}</b><span>${esc(t(g[1]))}</span></div>`).join(''); $('btnHelp').onclick = () => $('mHelp').classList.add('on'); }
+  if ($('btnIA')) {
+    const sinLista = () => { try { return !JSON.parse(localStorage.getItem(APP + '_models_' + getProv()) || '[]').length; } catch { return true; } };
+    $('selProv').onchange = () => { localStorage.setItem(APP + '_prov', $('selProv').value); cargaIA(); if (getKey() && sinLista()) cargaModelos(true); };
+    let _kt; $('apiKey').oninput = () => { const pv = getProv(); localStorage.setItem(PROV[pv].k, $('apiKey').value.trim()); localStorage.removeItem(APP + '_models_' + pv); clearTimeout(_kt); _kt = setTimeout(() => { if ($('apiKey').value.trim().length >= 20) cargaModelos(true); }, 900); };
+    $('selModelo').onchange = () => { const v = $('selModelo').value; if (v === OTRO_MODELO) { $('modelo').hidden = false; $('modelo').value = ''; $('modelo').focus(); return; } $('modelo').hidden = true; localStorage.setItem(APP + '_model_' + getProv(), v); };
+    $('modelo').oninput = () => localStorage.setItem(APP + '_model_' + getProv(), $('modelo').value.trim() || PROV[getProv()].m);
+    $('modelo').onchange = () => pintaModelos();
+    $('btnEye').onclick = () => { const k = $('apiKey'); k.type = k.type === 'password' ? 'text' : 'password'; };
+    $('btnModelos').onclick = () => cargaModelos(false);
+    $('btnIA').onclick = () => { cargaIA(); $('mIA').classList.add('on'); if (getKey() && sinLista()) cargaModelos(true); };
+  }
+}
+/* ¿hay clave? si no, abre los ajustes de IA y avisa */
+function pideClave() { if (getKey()) return true; if ($('mIA')) { cargaIA(); $('mIA').classList.add('on'); } toast(t('Pega tu clave de IA para continuar')); return false; }
+
+/* ── idiomas: español (por defecto), inglés y portugués; opcionales: català, euskara y galego (app.json → langs) ─────────────────────────────────────────────────
+   El español es el idioma de origen: está escrito en el HTML y en el JS. Las demás lenguas se traducen con diccionarios.
+   Dos formas de marcar texto traducible (una sola función, t(), y un diccionario por idioma):
+     · HTML estático:   <span data-i18n="clave">Texto en español</span>
+                        <input data-i18n-attr="placeholder:clave;aria-label:otra" placeholder="…">
+       En español se conserva el texto del HTML; en los demás idiomas se sustituye por I18N[lang][clave] (HTML de confianza: nunca metas
+       datos de la persona en el diccionario). Envuelve en <span> solo el texto, no los iconos ni los botones enteros.
+     · JavaScript:      t('Texto en español con {0} huecos', valor)   → la propia frase en español es la clave (estilo gettext)
+                        t('msg.clave')                                → clave corta; su texto en español va en I18N.es['msg.clave']
+   La app define (en src/i18n.js, se lee al ejecutar):   const I18N = {en: {…}, pt: {…}, es: {…solo claves cortas…}};
+   Este módulo trae I18N_BASE con todo lo que ponen los módulos de Forja (errores de IA, ajustes, avisos); la app puede sobrescribirlo.
+   build.py inyecta  const LANGS_ON = ["es","en","pt"]  desde app.json → langs  (con un solo idioma el selector no se muestra).
+   Reglas que evitan fallos reales:
+     · Guarda DATOS en el estado, no frases ya traducidas; traduce al pintar (si no, al cambiar de idioma quedan frases viejas).
+     · Cada pantalla se repinta al cambiar de idioma (evento «langchange» → RENDER[step]).
+     · A la IA se le pide el idioma con INSTR_IDIOMA(); las citas literales del material se copian en su idioma original. */
+const LANGS = {es: 'Español', ca: 'Català', eu: 'Euskara', gl: 'Galego', en: 'English', pt: 'Português'};   // ca, eu y gl: opcionales (lenguas cooficiales de España)
+const IA_LANG = {es: 'español', ca: 'català', eu: 'euskara (vasco)', gl: 'galego (gallego)', en: 'English', pt: 'português'};   // cómo se le nombra el idioma a la IA
+const LOCALE = {es: 'es-ES', ca: 'ca-ES', eu: 'eu-ES', gl: 'gl-ES', en: 'en-GB', pt: 'pt-PT'};            // formatos de número y fecha
+const langsOn = () => (typeof LANGS_ON !== 'undefined' ? LANGS_ON : ['es', 'en', 'pt']).filter(l => LANGS[l]);
+let LANG = 'es', _D = null;
+const locale = () => LOCALE[LANG] || 'es-ES';
+const langIA = () => IA_LANG[LANG] || 'español';
+/* frase para añadir a CADA prompt cuya respuesta ve la persona: la IA escribe en su idioma, pero ids, claves JSON y citas literales no se tocan */
+const INSTR_IDIOMA = () => `Escribe todos los textos de tu respuesta (los valores de los campos JSON) en ${langIA()}. No traduzcas los nombres de las claves JSON, los identificadores ni las citas literales del material: cópialas en su idioma original, sin cambiar nada.`;
+
+const I18N_BASE = {
+  en: {
+    'Inicio': 'Home', 'Ayuda': 'Help', 'IA': 'AI', 'Pasos': 'Steps', 'Atrás': 'Back', 'Siguiente': 'Next', 'Cerrar': 'Close', 'Cancelar': 'Cancel', 'Idioma': 'Language',
+    'Volver al inicio': 'Back to the start', 'Inteligencia artificial': 'Artificial intelligence', 'Proveedor': 'Provider', 'Tu clave de API': 'Your API key', 'Ver': 'Show', 'Modelo': 'Model',
+    'Ver los modelos de mi clave': 'Show the models available for my key',
+    'f.ia.ayuda': 'The key is stored only in this browser and sent only to your provider. Each person uses their own key and pays for their own use. Choose an inexpensive model: this use does not need the most powerful one.',
+    'Esto es lo que saldría hacia tu proveedor de IA': 'This is what would be sent to your AI provider',
+    'f.envio.chk': 'I have reviewed the sample and confirm that it may leave my computer.',
+    'Muestra del envío:': 'Sample of what is sent:', 'Realizada entre': 'Created by', 'Realizada por': 'Created by',
+    'Cómo funciona': 'How it works', 'Dónde va cada cosa': 'Where everything goes',
+    'Siempre en tu ordenador': 'Always on your computer', 'Sale hacia tu proveedor de IA': 'Sent to your AI provider',
+    'No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.': "Could not load the {0} library. A content blocker or your institution's network may be preventing it; try another network or disable the blocker on this page.",
+    'Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.': "Offline: an internet connection is needed to open this type of file the first time.",
+    'No se pudo guardar en el navegador (¿demasiado material?)': 'Could not save in the browser (too much material?)', 'No se pudo guardar en el navegador': 'Could not save in the browser',
+    '{0} no reconoce tu clave. Revísala en el botón «IA».': '{0} does not recognise your key. Check it with the “AI” button.',
+    'Tu clave no tiene acceso al modelo «{0}». Elige otro en el botón «IA».': 'Your key has no access to the model “{0}”. Choose another one with the “AI” button.',
+    'Tu cuenta de {0} no tiene saldo o ha alcanzado su límite.': 'Your {0} account has no balance or has reached its limit.',
+    'El modelo «{0}» no admite imágenes. Elige uno con visión.': 'The model “{0}” does not accept images. Choose one with vision.',
+    'No hay conexión con {0}.': 'No connection to {0}.', '{0} no responde ahora mismo. Inténtalo de nuevo en un momento.': '{0} is not responding right now. Please try again in a moment.',
+    'Falta tu clave de IA. Pulsa el botón «IA», arriba.': 'Your AI key is missing. Press the “AI” button at the top.', 'OpenAI no responde ahora mismo.': 'OpenAI is not responding right now.',
+    'El proveedor ha bloqueado la respuesta ({0}).': 'The provider blocked the response ({0}).',
+    'La IA no devolvió una respuesta con el formato esperado. Inténtalo de nuevo.': 'The AI did not return a response in the expected format. Please try again.',
+    'Primero pega tu clave.': 'Paste your key first.', '{0} modelos disponibles en tu clave; escribe o elige uno.': '{0} models available for your key; type or choose one.',
+    'Pega tu clave de IA para continuar': 'Paste your AI key to continue',
+    'El PowerPoint no tiene diapositivas': 'The PowerPoint has no slides', 'Formato no admitido (usa Word, PDF, PowerPoint, texto, imágenes, audio o vídeo)': 'Unsupported format (use Word, PDF, PowerPoint, text, images, audio or video)',
+    '«{0}» pesa más de 600 MB: exporta solo el audio (MP3 o WAV) y súbelo en su lugar.': '“{0}” is larger than 600 MB: export only the audio (MP3 or WAV) and upload that instead.',
+    'No se pudo leer el audio de «{0}». Prueba a exportarlo como MP3 o WAV.': 'Could not read the audio of “{0}”. Try exporting it as MP3 or WAV.',
+    'Para transcribir necesitas una clave de OpenAI o de Gemini (Claude no transcribe audio). Añádela en el botón «IA».': 'To transcribe you need an OpenAI or Gemini key (Claude does not transcribe audio). Add it with the “AI” button.',
+    'actual': "current",
+    'no aparece en tu clave': "not available for your key",
+    'Otro modelo (escribirlo)…': "Another model (type it)…",
+    'Escribe el nombre exacto del modelo': "Type the exact model name",
+    'Cargando los modelos de tu clave…': "Loading the models for your key…",
+    '{0} modelos disponibles en tu clave: elígelo en el desplegable.': "{0} models available for your key: choose one from the drop-down list.",
+    'Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».': "Your key returned no text models. Type the name with “Another model”."
+  },
+  pt: {
+    'Inicio': 'Início', 'Ayuda': 'Ajuda', 'IA': 'IA', 'Pasos': 'Passos', 'Atrás': 'Voltar', 'Siguiente': 'Seguinte', 'Cerrar': 'Fechar', 'Cancelar': 'Cancelar', 'Idioma': 'Idioma',
+    'Volver al inicio': 'Voltar ao início', 'Inteligencia artificial': 'Inteligência artificial', 'Proveedor': 'Fornecedor', 'Tu clave de API': 'A sua chave de API', 'Ver': 'Mostrar', 'Modelo': 'Modelo',
+    'Ver los modelos de mi clave': 'Ver os modelos disponíveis na minha chave',
+    'f.ia.ayuda': 'A chave é guardada apenas neste navegador e enviada apenas ao seu fornecedor. Cada pessoa usa a sua própria chave e paga a sua utilização. Escolha um modelo económico: esta utilização não precisa do mais potente.',
+    'Esto es lo que saldría hacia tu proveedor de IA': 'Isto é o que seria enviado ao seu fornecedor de IA',
+    'f.envio.chk': 'Revi a amostra e confirmo que pode sair do meu computador.',
+    'Muestra del envío:': 'Amostra do que é enviado:', 'Realizada entre': 'Realizada por', 'Realizada por': 'Realizada por',
+    'Cómo funciona': 'Como funciona', 'Dónde va cada cosa': 'Para onde vai cada coisa',
+    'Siempre en tu ordenador': 'Sempre no seu computador', 'Sale hacia tu proveedor de IA': 'Enviado ao seu fornecedor de IA',
+    'No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.': "Não foi possível carregar a biblioteca {0}. Um bloqueador ou a rede da sua instituição pode estar a impedi-la; experimente outra rede ou desative o bloqueador nesta página.",
+    'Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.': "Sem ligação: é preciso internet para abrir este tipo de ficheiro pela primeira vez.",
+    'No se pudo guardar en el navegador (¿demasiado material?)': 'Não foi possível guardar no navegador (demasiado material?)', 'No se pudo guardar en el navegador': 'Não foi possível guardar no navegador',
+    '{0} no reconoce tu clave. Revísala en el botón «IA».': '{0} não reconhece a sua chave. Verifique-a no botão «IA».',
+    'Tu clave no tiene acceso al modelo «{0}». Elige otro en el botón «IA».': 'A sua chave não tem acesso ao modelo «{0}». Escolha outro no botão «IA».',
+    'Tu cuenta de {0} no tiene saldo o ha alcanzado su límite.': 'A sua conta {0} não tem saldo ou atingiu o limite.',
+    'El modelo «{0}» no admite imágenes. Elige uno con visión.': 'O modelo «{0}» não aceita imagens. Escolha um com visão.',
+    'No hay conexión con {0}.': 'Sem ligação a {0}.', '{0} no responde ahora mismo. Inténtalo de nuevo en un momento.': '{0} não está a responder neste momento. Tente novamente daqui a pouco.',
+    'Falta tu clave de IA. Pulsa el botón «IA», arriba.': 'Falta a sua chave de IA. Prima o botão «IA», em cima.', 'OpenAI no responde ahora mismo.': 'A OpenAI não está a responder neste momento.',
+    'El proveedor ha bloqueado la respuesta ({0}).': 'O fornecedor bloqueou a resposta ({0}).',
+    'La IA no devolvió una respuesta con el formato esperado. Inténtalo de nuevo.': 'A IA não devolveu uma resposta no formato esperado. Tente novamente.',
+    'Primero pega tu clave.': 'Cole primeiro a sua chave.', '{0} modelos disponibles en tu clave; escribe o elige uno.': '{0} modelos disponíveis na sua chave; escreva ou escolha um.',
+    'Pega tu clave de IA para continuar': 'Cole a sua chave de IA para continuar',
+    'El PowerPoint no tiene diapositivas': 'O PowerPoint não tem diapositivos', 'Formato no admitido (usa Word, PDF, PowerPoint, texto, imágenes, audio o vídeo)': 'Formato não suportado (use Word, PDF, PowerPoint, texto, imagens, áudio ou vídeo)',
+    '«{0}» pesa más de 600 MB: exporta solo el audio (MP3 o WAV) y súbelo en su lugar.': '«{0}» tem mais de 600 MB: exporte apenas o áudio (MP3 ou WAV) e carregue-o em vez disso.',
+    'No se pudo leer el audio de «{0}». Prueba a exportarlo como MP3 o WAV.': 'Não foi possível ler o áudio de «{0}». Tente exportá-lo como MP3 ou WAV.',
+    'Para transcribir necesitas una clave de OpenAI o de Gemini (Claude no transcribe audio). Añádela en el botón «IA».': 'Para transcrever precisa de uma chave da OpenAI ou do Gemini (o Claude não transcreve áudio). Adicione-a no botão «IA».',
+    'actual': "atual",
+    'no aparece en tu clave': "não aparece na sua chave",
+    'Otro modelo (escribirlo)…': "Outro modelo (escrevê-lo)…",
+    'Escribe el nombre exacto del modelo': "Escreva o nome exato do modelo",
+    'Cargando los modelos de tu clave…': "A carregar os modelos da sua chave…",
+    '{0} modelos disponibles en tu clave: elígelo en el desplegable.': "{0} modelos disponíveis na sua chave: escolha-o na lista pendente.",
+    'Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».': "A sua chave não devolveu nenhum modelo de texto. Escreva o nome com «Outro modelo»."
+  },
+  ca: {
+    'Inicio': "Inici",
+    'Ayuda': "Ajuda",
+    'IA': "IA",
+    'Pasos': "Passos",
+    'Atrás': "Enrere",
+    'Siguiente': "Següent",
+    'Cerrar': "Tancar",
+    'Cancelar': "Cancel·lar",
+    'Idioma': "Idioma",
+    'Volver al inicio': "Tornar a l’inici",
+    'Inteligencia artificial': "Intel·ligència artificial",
+    'Proveedor': "Proveïdor",
+    'Tu clave de API': "La teva clau d’API",
+    'Ver': "Veure",
+    'Modelo': "Model",
+    'Ver los modelos de mi clave': "Veure els models de la meva clau",
+    'f.ia.ayuda': "La clau es desa només en aquest navegador i s’envia únicament al teu proveïdor. Cada persona fa servir la seva i paga el seu ús. Tria un model econòmic: aquest ús no necessita el més potent.",
+    'Esto es lo que saldría hacia tu proveedor de IA': "Això és el que sortiria cap al teu proveïdor d’IA",
+    'f.envio.chk': "He revisat la mostra i confirmo que pot sortir del meu ordinador.",
+    'Muestra del envío:': "Mostra de l’enviament:",
+    'Realizada entre': "Realitzada per",
+    'Realizada por': "Realitzada per",
+    'Cómo funciona': "Com funciona",
+    'Dónde va cada cosa': "On va cada cosa",
+    'Siempre en tu ordenador': "Sempre al teu ordinador",
+    'Sale hacia tu proveedor de IA': "Surt cap al teu proveïdor d’IA",
+    'No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.': "No s’ha pogut carregar la biblioteca {0}. Potser un bloquejador o la xarxa de la teua institució ho impedeix; prova una altra xarxa o desactiva el bloquejador en aquesta pàgina.",
+    'Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.': "Sense connexió: cal internet per a obrir aquest tipus de fitxer la primera vegada.",
+    'No se pudo guardar en el navegador (¿demasiado material?)': "No s’ha pogut desar al navegador (massa material?)",
+    'No se pudo guardar en el navegador': "No s’ha pogut desar al navegador",
+    '{0} no reconoce tu clave. Revísala en el botón «IA».': "{0} no reconeix la teva clau. Revisa-la al botó «IA».",
+    'Tu clave no tiene acceso al modelo «{0}». Elige otro en el botón «IA».': "La teva clau no té accés al model «{0}». Tria’n un altre al botó «IA».",
+    'Tu cuenta de {0} no tiene saldo o ha alcanzado su límite.': "El teu compte de {0} no té saldo o ha arribat al límit.",
+    'El modelo «{0}» no admite imágenes. Elige uno con visión.': "El model «{0}» no admet imatges. Tria’n un amb visió.",
+    'No hay conexión con {0}.': "No hi ha connexió amb {0}.",
+    '{0} no responde ahora mismo. Inténtalo de nuevo en un momento.': "{0} no respon ara mateix. Torna-ho a provar d’aquí a un moment.",
+    'Falta tu clave de IA. Pulsa el botón «IA», arriba.': "Falta la teva clau d’IA. Prem el botó «IA», a dalt.",
+    'OpenAI no responde ahora mismo.': "OpenAI no respon ara mateix.",
+    'El proveedor ha bloqueado la respuesta ({0}).': "El proveïdor ha bloquejat la resposta ({0}).",
+    'La IA no devolvió una respuesta con el formato esperado. Inténtalo de nuevo.': "La IA no ha retornat una resposta amb el format esperat. Torna-ho a provar.",
+    'Primero pega tu clave.': "Primer enganxa la teva clau.",
+    '{0} modelos disponibles en tu clave; escribe o elige uno.': "{0} models disponibles amb la teva clau; escriu-ne o tria’n un.",
+    'Pega tu clave de IA para continuar': "Enganxa la teva clau d’IA per continuar",
+    'El PowerPoint no tiene diapositivas': "El PowerPoint no té diapositives",
+    'Formato no admitido (usa Word, PDF, PowerPoint, texto, imágenes, audio o vídeo)': "Format no admès (fes servir Word, PDF, PowerPoint, text, imatges, àudio o vídeo)",
+    '«{0}» pesa más de 600 MB: exporta solo el audio (MP3 o WAV) y súbelo en su lugar.': "«{0}» pesa més de 600 MB: exporta només l’àudio (MP3 o WAV) i puja’l en lloc seu.",
+    'No se pudo leer el audio de «{0}». Prueba a exportarlo como MP3 o WAV.': "No s’ha pogut llegir l’àudio de «{0}». Prova d’exportar-lo com a MP3 o WAV.",
+    'Para transcribir necesitas una clave de OpenAI o de Gemini (Claude no transcribe audio). Añádela en el botón «IA».': "Per transcriure necessites una clau d’OpenAI o de Gemini (Claude no transcriu àudio). Afegeix-la al botó «IA».",
+    'actual': "actual",
+    'no aparece en tu clave': "no apareix a la teva clau",
+    'Otro modelo (escribirlo)…': "Un altre model (escriure’l)…",
+    'Escribe el nombre exacto del modelo': "Escriu el nom exacte del model",
+    'Cargando los modelos de tu clave…': "Carregant els models de la teva clau…",
+    '{0} modelos disponibles en tu clave: elígelo en el desplegable.': "{0} models disponibles amb la teva clau: tria’l al desplegable.",
+    'Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».': "La teva clau no ha retornat cap model de text. Escriu el nom amb «Un altre model»."
+  },
+  eu: {
+    'Inicio': "Hasiera",
+    'Ayuda': "Laguntza",
+    'IA': "AA",
+    'Pasos': "Urratsak",
+    'Atrás': "Atzera",
+    'Siguiente': "Hurrengoa",
+    'Cerrar': "Itxi",
+    'Cancelar': "Utzi",
+    'Idioma': "Hizkuntza",
+    'Volver al inicio': "Hasierara itzuli",
+    'Inteligencia artificial': "Adimen artifiziala",
+    'Proveedor': "Hornitzailea",
+    'Tu clave de API': "Zure API gakoa",
+    'Ver': "Ikusi",
+    'Modelo': "Eredua",
+    'Ver los modelos de mi clave': "Nire gakoaren ereduak ikusi",
+    'f.ia.ayuda': "Gakoa nabigatzaile honetan bakarrik gordetzen da eta zure hornitzaileari bakarrik bidaltzen zaio. Pertsona bakoitzak berea erabiltzen du eta bere erabilera ordaintzen du. Aukeratu eredu merke bat: erabilera honek ez du ahaltsuena behar.",
+    'Esto es lo que saldría hacia tu proveedor de IA': "Hau bidaliko litzateke zure AA hornitzailera",
+    'f.envio.chk': "Lagina berrikusi dut eta baieztatzen dut nire ordenagailutik atera daitekeela.",
+    'Muestra del envío:': "Bidalketaren lagina:",
+    'Realizada entre': "Egileak",
+    'Realizada por': "Egilea",
+    'Cómo funciona': "Nola dabilen",
+    'Dónde va cada cosa': "Non dagoen bakoitza",
+    'Siempre en tu ordenador': "Beti zure ordenagailuan",
+    'Sale hacia tu proveedor de IA': "Zure AA hornitzailera bidaltzen da",
+    'No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.': "Ezin izan da {0} liburutegia kargatu. Agian blokeatzaile batek edo zure erakundearen sareak eragozten du; probatu beste sare bat edo desaktibatu blokeatzailea orri honetan.",
+    'Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.': "Konexiorik gabe: internet behar da fitxategi mota hau lehen aldiz irekitzeko.",
+    'No se pudo guardar en el navegador (¿demasiado material?)': "Ezin izan da nabigatzailean gorde (material gehiegi?)",
+    'No se pudo guardar en el navegador': "Ezin izan da nabigatzailean gorde",
+    '{0} no reconoce tu clave. Revísala en el botón «IA».': "{0}k ez du zure gakoa ezagutzen. Egiaztatu «AA» botoian.",
+    'Tu clave no tiene acceso al modelo «{0}». Elige otro en el botón «IA».': "Zure gakoak ez du «{0}» eredurako sarbiderik. Aukeratu beste bat «AA» botoian.",
+    'Tu cuenta de {0} no tiene saldo o ha alcanzado su límite.': "Zure {0} kontuak ez du saldorik edo mugara iritsi da.",
+    'El modelo «{0}» no admite imágenes. Elige uno con visión.': "«{0}» ereduak ez du irudirik onartzen. Aukeratu ikusmena duen bat.",
+    'No hay conexión con {0}.': "Ez dago konexiorik {0}-rekin.",
+    '{0} no responde ahora mismo. Inténtalo de nuevo en un momento.': "{0}k ez du erantzuten oraintxe. Saiatu berriro geroxeago.",
+    'Falta tu clave de IA. Pulsa el botón «IA», arriba.': "Zure AA gakoa falta da. Sakatu goiko «AA» botoia.",
+    'OpenAI no responde ahora mismo.': "OpenAIk ez du erantzuten oraintxe.",
+    'El proveedor ha bloqueado la respuesta ({0}).': "Hornitzaileak erantzuna blokeatu du ({0}).",
+    'La IA no devolvió una respuesta con el formato esperado. Inténtalo de nuevo.': "AAk ez du espero zen formatuko erantzunik itzuli. Saiatu berriro.",
+    'Primero pega tu clave.': "Lehenik itsatsi zure gakoa.",
+    '{0} modelos disponibles en tu clave; escribe o elige uno.': "{0} eredu daude erabilgarri zure gakoarekin; idatzi edo aukeratu bat.",
+    'Pega tu clave de IA para continuar': "Itsatsi zure AA gakoa jarraitzeko",
+    'El PowerPoint no tiene diapositivas': "PowerPointak ez du diapositibarik",
+    'Formato no admitido (usa Word, PDF, PowerPoint, texto, imágenes, audio o vídeo)': "Formatu onartezina (erabili Word, PDF, PowerPoint, testua, irudiak, audioa edo bideoa)",
+    '«{0}» pesa más de 600 MB: exporta solo el audio (MP3 o WAV) y súbelo en su lugar.': "«{0}»k 600 MB baino gehiago ditu: esportatu audioa bakarrik (MP3 edo WAV) eta igo hori.",
+    'No se pudo leer el audio de «{0}». Prueba a exportarlo como MP3 o WAV.': "Ezin izan da «{0}»ren audioa irakurri. Saiatu MP3 edo WAV gisa esportatzen.",
+    'Para transcribir necesitas una clave de OpenAI o de Gemini (Claude no transcribe audio). Añádela en el botón «IA».': "Transkribatzeko OpenAI edo Gemini gako bat behar duzu (Claudek ez du audiorik transkribatzen). Gehitu «AA» botoian.",
+    'actual': "oraingoa",
+    'no aparece en tu clave': "ez dago zure gakoan",
+    'Otro modelo (escribirlo)…': "Beste eredu bat (idatzi)…",
+    'Escribe el nombre exacto del modelo': "Idatzi ereduaren izen zehatza",
+    'Cargando los modelos de tu clave…': "Zure gakoaren ereduak kargatzen…",
+    '{0} modelos disponibles en tu clave: elígelo en el desplegable.': "{0} eredu daude zure gakoarekin: aukeratu zabaltzen den zerrendan.",
+    'Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».': "Zure gakoak ez du testu-eredurik itzuli. Idatzi izena «Beste eredu bat» aukerarekin."
+  },
+  gl: {
+    'Inicio': "Inicio",
+    'Ayuda': "Axuda",
+    'IA': "IA",
+    'Pasos': "Pasos",
+    'Atrás': "Atrás",
+    'Siguiente': "Seguinte",
+    'Cerrar': "Pechar",
+    'Cancelar': "Cancelar",
+    'Idioma': "Idioma",
+    'Volver al inicio': "Volver ao inicio",
+    'Inteligencia artificial': "Intelixencia artificial",
+    'Proveedor': "Provedor",
+    'Tu clave de API': "A túa clave de API",
+    'Ver': "Ver",
+    'Modelo': "Modelo",
+    'Ver los modelos de mi clave': "Ver os modelos da miña clave",
+    'f.ia.ayuda': "A clave gárdase só neste navegador e envíase unicamente ao teu provedor. Cada persoa usa a súa e paga o seu uso. Escolle un modelo económico: este uso non precisa o máis potente.",
+    'Esto es lo que saldría hacia tu proveedor de IA': "Isto é o que sairía cara ao teu provedor de IA",
+    'f.envio.chk': "Revisei a mostra e confirmo que pode saír do meu ordenador.",
+    'Muestra del envío:': "Mostra do envío:",
+    'Realizada entre': "Realizada por",
+    'Realizada por': "Realizada por",
+    'Cómo funciona': "Como funciona",
+    'Dónde va cada cosa': "Onde vai cada cousa",
+    'Siempre en tu ordenador': "Sempre no teu ordenador",
+    'Sale hacia tu proveedor de IA': "Sae cara ao teu provedor de IA",
+    'No se pudo cargar la librería {0}. Puede que un bloqueador o la red de tu institución la impida; prueba otra red o desactiva el bloqueador en esta página.': "Non se puido cargar a biblioteca {0}. Quizais un bloqueador ou a rede da túa institución o impida; proba outra rede ou desactiva o bloqueador nesta páxina.",
+    'Sin conexión: hace falta internet para abrir este tipo de fichero la primera vez.': "Sen conexión: cómpre internet para abrir este tipo de ficheiro a primeira vez.",
+    'No se pudo guardar en el navegador (¿demasiado material?)': "Non se puido gardar no navegador (demasiado material?)",
+    'No se pudo guardar en el navegador': "Non se puido gardar no navegador",
+    '{0} no reconoce tu clave. Revísala en el botón «IA».': "{0} non recoñece a túa clave. Revísaa no botón «IA».",
+    'Tu clave no tiene acceso al modelo «{0}». Elige otro en el botón «IA».': "A túa clave non ten acceso ao modelo «{0}». Escolle outro no botón «IA».",
+    'Tu cuenta de {0} no tiene saldo o ha alcanzado su límite.': "A túa conta de {0} non ten saldo ou alcanzou o seu límite.",
+    'El modelo «{0}» no admite imágenes. Elige uno con visión.': "O modelo «{0}» non admite imaxes. Escolle un con visión.",
+    'No hay conexión con {0}.': "Non hai conexión con {0}.",
+    '{0} no responde ahora mismo. Inténtalo de nuevo en un momento.': "{0} non responde agora mesmo. Ténteo de novo nun momento.",
+    'Falta tu clave de IA. Pulsa el botón «IA», arriba.': "Falta a túa clave de IA. Preme o botón «IA», arriba.",
+    'OpenAI no responde ahora mismo.': "OpenAI non responde agora mesmo.",
+    'El proveedor ha bloqueado la respuesta ({0}).': "O provedor bloqueou a resposta ({0}).",
+    'La IA no devolvió una respuesta con el formato esperado. Inténtalo de nuevo.': "A IA non devolveu unha resposta co formato esperado. Ténteo de novo.",
+    'Primero pega tu clave.': "Primeiro pega a túa clave.",
+    '{0} modelos disponibles en tu clave; escribe o elige uno.': "{0} modelos dispoñibles na túa clave; escribe ou escolle un.",
+    'Pega tu clave de IA para continuar': "Pega a túa clave de IA para continuar",
+    'El PowerPoint no tiene diapositivas': "O PowerPoint non ten diapositivas",
+    'Formato no admitido (usa Word, PDF, PowerPoint, texto, imágenes, audio o vídeo)': "Formato non admitido (usa Word, PDF, PowerPoint, texto, imaxes, audio ou vídeo)",
+    '«{0}» pesa más de 600 MB: exporta solo el audio (MP3 o WAV) y súbelo en su lugar.': "«{0}» pesa máis de 600 MB: exporta só o audio (MP3 ou WAV) e súbeo no seu lugar.",
+    'No se pudo leer el audio de «{0}». Prueba a exportarlo como MP3 o WAV.': "Non se puido ler o audio de «{0}». Proba a exportalo como MP3 ou WAV.",
+    'Para transcribir necesitas una clave de OpenAI o de Gemini (Claude no transcribe audio). Añádela en el botón «IA».': "Para transcribir precisas unha clave de OpenAI ou de Gemini (Claude non transcribe audio). Engádea no botón «IA».",
+    'actual': "actual",
+    'no aparece en tu clave': "non aparece na túa clave",
+    'Otro modelo (escribirlo)…': "Outro modelo (escribilo)…",
+    'Escribe el nombre exacto del modelo': "Escribe o nome exacto do modelo",
+    'Cargando los modelos de tu clave…': "Cargando os modelos da túa clave…",
+    '{0} modelos disponibles en tu clave: elígelo en el desplegable.': "{0} modelos dispoñibles na túa clave: escólleo no despregable.",
+    'Tu clave no devolvió ningún modelo de texto. Escribe el nombre con «Otro modelo».': "A túa clave non devolveu ningún modelo de texto. Escribe o nome con «Outro modelo»."
+  }
+};
+
+const _dict = l => ({...(I18N_BASE[l] || {}), ...((typeof I18N !== 'undefined' && I18N && I18N[l]) || {})});
+const D = () => _D || (_D = _dict(LANG));
+/* t(clave, ...args): traduce y rellena {0}, {1}…  Si falta la traducción devuelve el español (la clave o I18N.es[clave]): nunca texto vacío. */
+function t(k, ...a) {
+  let s = D()[k];
+  if (s === undefined && typeof I18N !== 'undefined' && I18N && I18N.es) s = I18N.es[k];
+  if (s === undefined) s = k;
+  return a.length ? String(s).replace(/\{(\d+)\}/g, (m, i) => a[+i] ?? m) : String(s);
+}
+function applyI18n(root = document) {
+  document.documentElement.lang = LANG;
+  root.querySelectorAll('[data-i18n]').forEach(el => {
+    if (el._es === undefined) el._es = el.innerHTML;                       // el español original, tal como está en el HTML
+    const v = LANG === 'es' ? undefined : D()[el.dataset.i18n];
+    el.innerHTML = v !== undefined ? v : el._es;
+  });
+  root.querySelectorAll('[data-i18n-attr]').forEach(el => {
+    el._esA = el._esA || {};
+    el.dataset.i18nAttr.split(';').forEach(par => {
+      const [at, k] = par.split(':').map(x => x.trim()); if (!at || !k) return;
+      if (!(at in el._esA)) el._esA[at] = el.getAttribute(at) ?? '';
+      const v = LANG === 'es' ? undefined : D()[k]; el.setAttribute(at, v !== undefined ? v : el._esA[at]);
+    });
+  });
+  if (applyI18n._tit === undefined) applyI18n._tit = document.title;
+  const tit = LANG === 'es' ? undefined : D()['title']; document.title = tit !== undefined ? tit : applyI18n._tit;
+}
+function setLang(l) {
+  if (!langsOn().includes(l)) l = langsOn()[0];
+  LANG = l; _D = null; try { localStorage.setItem(APP + '_lang', l); } catch {}
+  applyI18n(); const s = $('selLang'); if (s) s.value = l;
+  window.dispatchEvent(new CustomEvent('langchange', {detail: l}));
+}
+/* llamada UNA vez desde iniciaUI(). Orden de preferencia: ?lang=xx en la URL (para compartir enlaces) → elección guardada → español. */
+function initI18n() {
+  let l = 'es'; try { l = localStorage.getItem(APP + '_lang') || 'es'; } catch {}
+  const q = new URLSearchParams(location.search).get('lang'); if (q) l = q;
+  LANG = langsOn().includes(l) ? l : 'es'; _D = null;
+  const sel = $('selLang');
+  if (sel) { sel.innerHTML = langsOn().map(x => `<option value="${x}">${LANGS[x]}</option>`).join(''); sel.value = LANG; sel.onchange = () => setLang(sel.value); }
+  if (langsOn().length < 2 && $('langBox')) $('langBox').remove();
+  applyI18n();
+}
+/* Para las pruebas: claves del HTML, pasos, botones y glosario que no tienen traducción en algún idioma activo ([] = completo). */
+function i18nFaltan() {
+  const keys = new Set(), lit = [];
+  document.querySelectorAll('[data-i18n]').forEach(el => keys.add(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(p => { const k = (p.split(':')[1] || '').trim(); if (k) keys.add(k); }));
+  if (typeof STEPS !== 'undefined') lit.push(...STEPS);
+  if (typeof NAV !== 'undefined') NAV.forEach(n => lit.push(n[0], n[1]));
+  if (typeof GLOS !== 'undefined') GLOS.forEach(g => lit.push(g[0], g[1]));
+  if (typeof HUBS !== 'undefined') lit.push(...HUBS);
+  const out = [];
+  langsOn().filter(l => l !== 'es').forEach(l => { const d = _dict(l); [...keys, ...lit.filter(Boolean)].forEach(k => { if (d[k] === undefined) out.push(l + ': ' + String(k).slice(0, 60)); }); });
+  return out;
+}
+
+/* ── salidas: Word, ZIP y CSV SIN LIBRERÍAS EXTERNAS ─────────────────────────────────────────────────────────
+   Antes se cargaban docx y JSZip desde cdnjs al pulsar «Descargar»: si la URL de cdnjs cambiaba, si había un
+   bloqueador, un proxy de la universidad o no había red, salía «No se pudo cargar una librería: ¿hay conexión?».
+   Ahora el .docx y el .zip se escriben aquí mismo (Office Open XML + ZIP), funcionan sin conexión, con file:// y
+   con cualquier CSP. No toques esto para volver a usar window.docx: si una app necesita algo que wordDeMarkdown
+   no hace, amplía este escritor (párrafos, tablas, estilos), no añadas una dependencia de red. */
+
+/* ZIP: crc32 + cabeceras locales y directorio central. Comprime con deflate-raw si el navegador lo permite
+   (CompressionStream); si no, guarda sin comprimir (método 0), que Word y cualquier descompresor leen igual. */
+const _CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = _CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+async function _bytes(c) {
+  if (c instanceof Uint8Array) return c;
+  if (c instanceof ArrayBuffer) return new Uint8Array(c);
+  if (ArrayBuffer.isView(c)) return new Uint8Array(c.buffer, c.byteOffset, c.byteLength);
+  if (c instanceof Blob) return new Uint8Array(await c.arrayBuffer());
+  return new TextEncoder().encode(String(c ?? ''));
+}
+async function _deflate(b) {
+  if (typeof CompressionStream !== 'function' || b.length < 200) return null;
+  try { return new Uint8Array(await new Response(new Blob([b]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); } catch { return null; }
+}
+async function zipBytes(ficheros, {comprimir = true} = {}) {
+  const d = new Date(), tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dt = ((Math.max(d.getFullYear(), 1980) - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  const loc = [], cen = []; let off = 0;
+  for (const [nombre, cont] of Object.entries(ficheros)) {
+    const nm = new TextEncoder().encode(nombre), raw = await _bytes(cont), crc = crc32(raw);
+    const def = comprimir ? await _deflate(raw) : null, usa = def && def.length < raw.length, dat = usa ? def : raw, met = usa ? 8 : 0;
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, met, true); h.setUint16(10, tm, true); h.setUint16(12, dt, true);
+    h.setUint32(14, crc, true); h.setUint32(18, dat.length, true); h.setUint32(22, raw.length, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, met, true); c.setUint16(12, tm, true); c.setUint16(14, dt, true);
+    c.setUint32(16, crc, true); c.setUint32(20, dat.length, true); c.setUint32(24, raw.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    loc.push(new Uint8Array(h.buffer), nm, dat); cen.push(new Uint8Array(c.buffer), nm);
+    off += 30 + nm.length + dat.length;
+  }
+  const tamCen = cen.reduce((s, x) => s + x.length, 0), n = Object.keys(ficheros).length, e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, n, true); e.setUint16(10, n, true); e.setUint32(12, tamCen, true); e.setUint32(16, off, true);
+  return new Blob([...loc, ...cen, new Uint8Array(e.buffer)]);
+}
+/* zipDe({'nombre.ext': Blob|string|Uint8Array|ArrayBuffer, …}) → Blob .zip  (misma firma que la versión con JSZip) */
+async function zipDe(ficheros) { const b = await zipBytes(ficheros); return new Blob([b], {type: 'application/zip'}); }
+
+/* Word (.docx) escrito a mano: Office Open XML mínimo, válido para Word, LibreOffice, Pages y Google Docs. */
+const _x = s => String(s ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+/* un «run» de texto: {text, b, i, col, s (medios puntos; null = el del estilo), font (null = el del estilo)} */
+function wRun({text = '', b, i, col, s = 22, font = 'Arial'} = {}) {
+  const pr = `<w:rPr>${font ? `<w:rFonts w:ascii="${font}" w:hAnsi="${font}" w:cs="${font}"/>` : ''}${b ? '<w:b/>' : ''}${i ? '<w:i/>' : ''}${col ? `<w:color w:val="${col}"/>` : ''}${s ? `<w:sz w:val="${s}"/><w:szCs w:val="${s}"/>` : ''}</w:rPr>`;   // s/font = null → los del estilo
+  return String(text).split('\n').map((l, k) => (k ? '<w:br/>' : '') + `<w:t xml:space="preserve">${_x(l)}</w:t>`).map(t => `<w:r>${pr}${t}</w:r>`).join('');
+}
+/* **negrita**, *cursiva* y `código` en línea → runs */
+function wInline(tx, base = {}) {   // base.b pone todo en negrita (cabeceras de tabla)
+  return String(tx).split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`)/).filter(Boolean).map(p =>
+    p.startsWith('**') ? wRun({...base, text: p.slice(2, -2), b: true}) :
+    p.startsWith('`') ? wRun({...base, text: p.slice(1, -1), font: 'Consolas'}) :
+    /^\*[^*\s]/.test(p) && p.endsWith('*') && p.length > 2 ? wRun({...base, text: p.slice(1, -1), i: true}) :
+    wRun({...base, text: p})).join('');
+}
+/* un párrafo: o = {h (1-3 → Título 1-3), c (centrado), after (twips), ind (sangría, twips), plain, s, b, i, col} */
+function wPara(tx, o = {}) {
+  const ppr = (o.h ? `<w:pStyle w:val="Heading${o.h}"/>` : '') + `<w:spacing w:after="${o.after ?? 110}"/>` + (o.ind ? `<w:ind w:left="${o.ind}" w:hanging="${o.hang ?? 0}"/>` : '') + (o.c ? '<w:jc w:val="center"/>' : '');
+  const s = o.h ? null : o.s;   // los títulos toman tamaño y color de su estilo (Heading1-3)
+  const runs = o.plain ? wRun({text: tx, s, b: o.b, i: o.i, col: o.col}) : wInline(tx, {s, i: o.i, col: o.col});
+  return `<w:p><w:pPr>${ppr}</w:pPr>${runs}</w:p>`;
+}
+/* tabla a partir de filas de celdas (la primera, cabecera en negrita) */
+function wTabla(filas) {
+  const nc = Math.max(...filas.map(f => f.length)), w = Math.floor(9000 / nc), bd = '<w:top w:val="single" w:sz="4" w:color="BFC9D4"/><w:left w:val="single" w:sz="4" w:color="BFC9D4"/><w:bottom w:val="single" w:sz="4" w:color="BFC9D4"/><w:right w:val="single" w:sz="4" w:color="BFC9D4"/><w:insideH w:val="single" w:sz="4" w:color="BFC9D4"/><w:insideV w:val="single" w:sz="4" w:color="BFC9D4"/>';
+  const fila = (f, cab) => '<w:tr>' + Array.from({length: nc}, (_, j) => `<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/>${cab ? '<w:shd w:val="clear" w:color="auto" w:fill="EEF2F6"/>' : ''}</w:tcPr><w:p><w:pPr><w:spacing w:after="40"/></w:pPr>${wInline(f[j] ?? '', {s: 20, b: cab})}</w:p></w:tc>`).join('') + '</w:tr>';
+  return `<w:tbl><w:tblPr><w:tblW w:w="${w * nc}" w:type="dxa"/><w:tblBorders>${bd}</w:tblBorders><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${'<w:gridCol w:w="' + w + '"/>'.repeat(nc)}</w:tblGrid>${filas.map((f, k) => fila(f, k === 0)).join('')}</w:tbl><w:p><w:pPr><w:spacing w:after="60"/></w:pPr></w:p>`;
+}
+/* wordDeXml(cuerpoXml, {creador, titulo}) → Blob .docx   (para apps que montan su propio cuerpo con wPara/wTabla) */
+async function wordDeXml(cuerpo, {creador = '', titulo = ''} = {}) {
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const hs = [[1, 32, '0F2237'], [2, 26, '0F2237'], [3, 23, '33475B']].map(([n, s, col]) => `<w:style w:type="paragraph" w:styleId="Heading${n}"><w:name w:val="heading ${n}"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:uiPriority w:val="9"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="${n === 1 ? 280 : 200}" w:after="100"/><w:outlineLvl w:val="${n - 1}"/></w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:b/><w:color w:val="${col}"/><w:sz w:val="${s}"/><w:szCs w:val="${s}"/></w:rPr></w:style>`).join('');
+  const lang = typeof LANG === 'string' ? ({es: 'es-ES', ca: 'ca-ES', eu: 'eu-ES', gl: 'gl-ES', en: 'en-GB', pt: 'pt-PT'}[LANG] || 'es-ES') : 'es-ES';
+  const ahora = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  return new Blob([await zipBytes({
+    '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>',
+    '_rels/.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>',
+    'docProps/core.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${_x(titulo)}</dc:title><dc:creator>${_x(creador)}</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${ahora}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${ahora}</dcterms:modified></cp:coreProperties>`,
+    'word/_rels/document.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+    'word/styles.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${W}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:eastAsia="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="${lang}"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="110" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>${hs}</w:styles>`,
+    'word/document.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W}><w:body>${cuerpo}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr></w:body></w:document>`
+  })], {type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+/* wordDeMarkdown(md, {titulo, subtitulo, pie, kicker}) → Blob .docx
+   Convierte #/##/### encabezados, listas, tablas Markdown (| a | b |), **negritas**, *cursivas* y `código`. */
+async function wordDeMarkdown(md, {titulo = '', subtitulo = '', pie = '', kicker = ''} = {}) {
+  const k = [];
+  if (kicker) k.push(wPara(String(kicker).toUpperCase(), {c: true, b: true, col: 'E4572E', s: 20, plain: true}));
+  if (titulo) k.push(wPara(titulo, {c: true, b: true, s: 32, plain: true}));
+  if (subtitulo) k.push(wPara(subtitulo, {c: true, col: '5D7691', s: 20, after: 260, plain: true}));
+  const lineas = String(md ?? '').replace(/\r\n?/g, '\n').split('\n'); let tabla = [];
+  const cierraTabla = () => { if (tabla.length) { k.push(wTabla(tabla)); tabla = []; } };
+  for (const l of lineas) {
+    const t = l.trimEnd(); let m;
+    if (/^\s*\|.*\|\s*$/.test(t)) { if (!/^\s*\|[\s:|-]+\|\s*$/.test(t)) tabla.push(t.trim().slice(1, -1).split('|').map(c => c.trim())); continue; }
+    cierraTabla(); if (!t.trim() || /^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(t)) continue;
+    if (m = t.match(/^(#{1,6})\s+(.*)/)) k.push(wPara(m[2], {h: Math.min(m[1].length, 3)}));
+    else if (m = t.match(/^(\s*)[-*•]\s+(.*)/)) k.push(wPara('•\t' + m[2], {ind: 360 + Math.min(m[1].length, 8) * 90, hang: 240, after: 60}));
+    else if (m = t.match(/^(\s*)(\d+[.)])\s+(.*)/)) k.push(wPara(m[2] + '\t' + m[3], {ind: 400 + Math.min(m[1].length, 8) * 90, hang: 320, after: 60}));
+    else if (m = t.match(/^>\s?(.*)/)) k.push(wPara(m[1], {ind: 360, i: true, col: '5D7691'}));
+    else k.push(wPara(t));
+  }
+  cierraTabla();
+  if (pie) k.push(wPara(pie, {i: true, s: 16, col: '8899AA', plain: true}));
+  const app = typeof APP_NAME === 'string' ? APP_NAME : (typeof APP === 'string' ? APP : '');
+  return wordDeXml(k.join(''), {creador: app, titulo: titulo || app});
+}
+/* csv con BOM, separador «;» (Excel en español) y comillas escapadas */
+const csvq = v => { const s = String(v ?? ''); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const csvDe = (cab, filas) => '\ufeff' + [cab, ...filas].map(f => f.map(csvq).join(';')).join('\r\n');
+
+/* ══ Diccionarios de PautIA para data-i18n y t(). El resto va en línea «es|en|pt». ══ */
+const I18N = {
+  en: {
+    'title': "PautIA · The procedure beside the couch: calculations, map and traceability",
+    'hero.eyebrow': "EstéticIA Kit · Master's in Comprehensive Aesthetic and Anti-Ageing Medicine · Miguel Hernández University of Elche", 'hero.h1': "Beside the couch: <em>every point, every batch</em>", 'hero.lede': "Record the products with their batch and expiry date, mark each point on the face with its units or volume and log the device parameters. The app calculates reconstitution and fluence, adds up what you have used, warns in vascular danger zones and writes the treatment sheet. No AI and no connection needed.",
+    "s.empezar": "Start",
+    "s.ejemplo": "See an example",
+    "s.j1b": "The session",
+    "s.j1s": "Load the AnamnesIA file or identify the patient.",
+    "s.j2b": "Products and calculations",
+    "s.j2s": "Batch, expiry, reconstitution, anaesthetic and device parameters.",
+    "s.j3b": "The map",
+    "s.j3s": "Each point on the face, with its quantity and a warning in danger zones.",
+    "s.j4b": "The sheet",
+    "s.j4s": "Treatment sheet in Word and the session for SeguimIA.",
+    "s.zl": "<li>Sessions, products and maps, in this browser</li><li>Calculations are done right here: the app uses no AI and no connection</li><li>Use an identifier instead of the patient's name</li>",
+    "Paso 1 de 4": "Step 1 of 4",
+    "Paso 2 de 4": "Step 2 of 4",
+    "Paso 3 de 4": "Step 3 of 4",
+    "Paso 4 de 4": "Step 4 of 4",
+    "Sesión": "Session",
+    "s.ses.lede": "Load the AnamnesIA file or enter the patient identifier and the date.",
+    "Productos y cálculos": "Products and calculations",
+    "s.pro.lede": "Each product with its batch and expiry date. Reconstitution, anaesthetic and fluence are calculated automatically.",
+    "Mapa de puntos": "Point map",
+    "s.map.lede": "Choose the product and tap the face to add a point. Edit the quantity, plane and technique in the list.",
+    "Hoja de tratamiento": "Treatment sheet",
+    "s.hoj.lede": "Review the warnings, note any events and download the sheet or the session for SeguimIA.",
+    "f.pie": "Support tool for doctors: it does the arithmetic and the record, it does not decide doses or technique. Each product's information prevails. Your data are stored only in this browser.",
+    "Inicio": "Home",
+    "Productos": "Products",
+    "Mapa": "Map",
+    "Hoja": "Sheet",
+    "Empezar": "Start",
+    "Siguiente: productos": "Next: products",
+    "Siguiente: mapa": "Next: map",
+    "Siguiente: hoja": "Next: sheet",
+    "Volver al inicio": "Back to home",
+    "Prueba el ejemplo: toxina en el tercio superior y relleno en el pómulo.": "Try the example: toxin in the upper third and filler in the cheekbone.",
+    "Con la ficha de AnamnesIA no repites datos.": "With the AnamnesIA file you do not repeat data.",
+    "Sin lote no hay trazabilidad.": "Without a batch there is no traceability.",
+    "Toca la cara para añadir un punto.": "Tap the face to add a point.",
+    "Descarga la hoja o pasa la sesión a SeguimIA.": "Download the sheet or pass the session to SeguimIA.",
+    "¿Qué es PautIA?": "What is PautIA?",
+    "La cuarta app del Kit EstéticIA: el registro del procedimiento junto a la camilla, con los cálculos, el mapa de puntos y la trazabilidad de cada producto.": "The fourth app of the EstéticIA Kit: the procedure record beside the couch, with the calculations, the point map and the traceability of each product.",
+    "El mapa": "The map",
+    "Elige el producto activo y toca la cara: el punto se añade con la cantidad por defecto y se asigna a su zona y lado. Puedes cambiar la zona, la cantidad, el plano y la técnica en la lista. Si no usas pantalla táctil ni ratón, añade el punto desde la lista de zonas.": "Choose the active product and tap the face: the point is added with the default quantity and assigned to its area and side. You can change the area, quantity, plane and technique in the list. If you do not use a touch screen or mouse, add the point from the list of areas.",
+    "Los avisos": "The warnings",
+    "La app avisa si un producto está caducado o caduca pronto, si falta el lote, si los puntos suman más de lo que hay reconstituido o en las jeringas abiertas, si hay relleno en una zona de riesgo vascular alto y si AnamnesIA marcó «no tratar ahora».": "The app warns if a product has expired or expires soon, if the batch is missing, if the points add up to more than has been reconstituted or is in the opened syringes, if there is filler in a high vascular-risk area and if AnamnesIA flagged «do not treat now».",
+    "Los cálculos": "The calculations",
+    "Reconstitución de la toxina con las unidades del vial y el volumen de suero; dosis máxima orientativa de anestésico local por peso; fluencia del láser a partir de la energía y el diámetro del spot. La app no decide dosis: hace la aritmética con tus datos.": "Toxin reconstitution from the vial units and saline volume; approximate maximum local anaesthetic dose by weight; laser fluence from the energy and spot diameter. The app does not decide doses: it does the arithmetic with your data.",
+    "La sesión para SeguimIA": "The session for SeguimIA",
+    "El fichero JSON de la sesión guarda productos, lotes, puntos y parámetros para que SeguimIA pueda comparar en la revisión.": "The session JSON file stores products, batches, points and parameters so that SeguimIA can compare at the review.",
+    "Sin IA y sin conexión": "No AI and no connection",
+    "La app no usa inteligencia artificial ni envía nada a ningún servidor.": "The app uses no artificial intelligence and sends nothing to any server.",
+    "Límites": "Limits",
+    "Es una ayuda para médicos formados. Manda la ficha técnica de cada producto y el criterio clínico. Las zonas del mapa son orientativas y no sustituyen al conocimiento anatómico.": "It is an aid for trained doctors. Each product's information and clinical judgement prevail. The map areas are approximate and do not replace anatomical knowledge.",
+  },
+  pt: {
+    'title': "PautIA · O procedimento junto à marquesa: cálculos, mapa e rastreabilidade",
+    'hero.eyebrow': "Kit EstéticIA · Mestrado de Medicina Estética Integral e Antienvelhecimento · Universidade Miguel Hernández de Elche", 'hero.h1': "Junto à marquesa: <em>cada ponto, cada lote</em>", 'hero.lede': "Registe os produtos com lote e validade, marque no rosto cada ponto com as suas unidades ou volume e registe os parâmetros do equipamento. A app calcula a reconstituição e a fluência, soma o que já usou, avisa nas zonas de risco vascular e deixa a folha de tratamento escrita. Sem IA e sem ligação.",
+    "s.empezar": "Começar",
+    "s.ejemplo": "Ver um exemplo",
+    "s.j1b": "A sessão",
+    "s.j1s": "Carregue a ficha do AnamnesIA ou identifique o doente.",
+    "s.j2b": "Produtos e cálculos",
+    "s.j2s": "Lote, validade, reconstituição, anestésico e parâmetros do equipamento.",
+    "s.j3b": "O mapa",
+    "s.j3s": "Cada ponto no rosto, com a sua quantidade e aviso nas zonas de risco.",
+    "s.j4b": "A folha",
+    "s.j4s": "Folha de tratamento em Word e a sessão para o SeguimIA.",
+    "s.zl": "<li>As sessões, os produtos e os mapas, neste navegador</li><li>Os cálculos fazem-se aqui mesmo: a app não usa IA nem ligação</li><li>Use um identificador em vez do nome do doente</li>",
+    "Paso 1 de 4": "Passo 1 de 4",
+    "Paso 2 de 4": "Passo 2 de 4",
+    "Paso 3 de 4": "Passo 3 de 4",
+    "Paso 4 de 4": "Passo 4 de 4",
+    "Sesión": "Sessão",
+    "s.ses.lede": "Carregue a ficha do AnamnesIA ou escreva o identificador do doente e a data.",
+    "Productos y cálculos": "Produtos e cálculos",
+    "s.pro.lede": "Cada produto com o seu lote e validade. A reconstituição, o anestésico e a fluência calculam-se sozinhos.",
+    "Mapa de puntos": "Mapa de pontos",
+    "s.map.lede": "Escolha o produto e toque no rosto para adicionar um ponto. Edite a quantidade, o plano e a técnica na lista.",
+    "Hoja de tratamiento": "Folha de tratamento",
+    "s.hoj.lede": "Reveja os avisos, anote as incidências e descarregue a folha ou a sessão para o SeguimIA.",
+    "f.pie": "Ferramenta de apoio para médicos: faz a aritmética e o registo, não decide doses nem técnica. Prevalece o resumo das características de cada produto. Os seus dados ficam guardados apenas neste navegador.",
+    "Inicio": "Início",
+    "Productos": "Produtos",
+    "Mapa": "Mapa",
+    "Hoja": "Folha",
+    "Empezar": "Começar",
+    "Siguiente: productos": "Seguinte: produtos",
+    "Siguiente: mapa": "Seguinte: mapa",
+    "Siguiente: hoja": "Seguinte: folha",
+    "Volver al inicio": "Voltar ao início",
+    "Prueba el ejemplo: toxina en el tercio superior y relleno en el pómulo.": "Experimente o exemplo: toxina no terço superior e preenchimento na maçã do rosto.",
+    "Con la ficha de AnamnesIA no repites datos.": "Com a ficha do AnamnesIA não repete dados.",
+    "Sin lote no hay trazabilidad.": "Sem lote não há rastreabilidade.",
+    "Toca la cara para añadir un punto.": "Toque no rosto para adicionar um ponto.",
+    "Descarga la hoja o pasa la sesión a SeguimIA.": "Descarregue a folha ou passe a sessão para o SeguimIA.",
+    "¿Qué es PautIA?": "O que é o PautIA?",
+    "La cuarta app del Kit EstéticIA: el registro del procedimiento junto a la camilla, con los cálculos, el mapa de puntos y la trazabilidad de cada producto.": "A quarta app do Kit EstéticIA: o registo do procedimento junto à marquesa, com os cálculos, o mapa de pontos e a rastreabilidade de cada produto.",
+    "El mapa": "O mapa",
+    "Elige el producto activo y toca la cara: el punto se añade con la cantidad por defecto y se asigna a su zona y lado. Puedes cambiar la zona, la cantidad, el plano y la técnica en la lista. Si no usas pantalla táctil ni ratón, añade el punto desde la lista de zonas.": "Escolha o produto ativo e toque no rosto: o ponto é adicionado com a quantidade predefinida e atribuído à sua zona e lado. Pode mudar a zona, a quantidade, o plano e a técnica na lista. Se não usar ecrã tátil nem rato, adicione o ponto a partir da lista de zonas.",
+    "Los avisos": "Os avisos",
+    "La app avisa si un producto está caducado o caduca pronto, si falta el lote, si los puntos suman más de lo que hay reconstituido o en las jeringas abiertas, si hay relleno en una zona de riesgo vascular alto y si AnamnesIA marcó «no tratar ahora».": "A app avisa se um produto expirou ou expira em breve, se falta o lote, se os pontos somam mais do que está reconstituído ou nas seringas abertas, se há preenchimento numa zona de risco vascular alto e se o AnamnesIA assinalou «não tratar agora».",
+    "Los cálculos": "Os cálculos",
+    "Reconstitución de la toxina con las unidades del vial y el volumen de suero; dosis máxima orientativa de anestésico local por peso; fluencia del láser a partir de la energía y el diámetro del spot. La app no decide dosis: hace la aritmética con tus datos.": "Reconstituição da toxina com as unidades do frasco e o volume de soro; dose máxima aproximada de anestésico local por peso; fluência do laser a partir da energia e do diâmetro do spot. A app não decide doses: faz a aritmética com os seus dados.",
+    "La sesión para SeguimIA": "A sessão para o SeguimIA",
+    "El fichero JSON de la sesión guarda productos, lotes, puntos y parámetros para que SeguimIA pueda comparar en la revisión.": "O ficheiro JSON da sessão guarda produtos, lotes, pontos e parâmetros para que o SeguimIA possa comparar na revisão.",
+    "Sin IA y sin conexión": "Sem IA e sem ligação",
+    "La app no usa inteligencia artificial ni envía nada a ningún servidor.": "A app não usa inteligência artificial nem envia nada para nenhum servidor.",
+    "Límites": "Limites",
+    "Es una ayuda para médicos formados. Manda la ficha técnica de cada producto y el criterio clínico. Las zonas del mapa son orientativas y no sustituyen al conocimiento anatómico.": "É uma ajuda para médicos com formação. Prevalecem o resumo das características de cada produto e o critério clínico. As zonas do mapa são aproximadas e não substituem o conhecimento anatómico.",
+  }
+};
+
+/* ══ NÚCLEO DE PautIA (lógica pura, sin DOM: se prueba en Node con tests/test_nucleo.js).
+      Productos y trazabilidad, cálculos (reconstitución de toxina, anestésico, fluencia), mapa facial con zonas,
+      comprobaciones de la sesión, hoja de tratamiento y sesión para SeguimIA. Textos «es|en|pt». ══ */
+const _LI = {es: 0, en: 1, pt: 2};
+const T3 = s => { const p = String(s).split('|'); return p[_LI[typeof LANG === 'string' ? LANG : 'es']] ?? p[0]; };
+const T3f = (s, ...a) => T3(s).replace(/\{(\d)\}/g, (_, i) => a[+i]);
+const num = v => { const x = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(x) ? x : NaN; };
+const nfx = (x, d = 1) => isFinite(x) ? Number(x).toLocaleString(typeof locale === 'function' ? locale() : 'es-ES', {maximumFractionDigits: d}) : '—';
+
+/* ── tipos de producto: unidad de cada punto ── */
+const TIPOS = {
+  tox: ['Toxina botulínica|Botulinum toxin|Toxina botulínica', 'U'],
+  ah: ['Ácido hialurónico|Hyaluronic acid|Ácido hialurónico', 'mL'],
+  bio: ['Bioestimulador|Biostimulator|Bioestimulador', 'mL'],
+  hil: ['Hilos|Threads|Fios', 'hilos|threads|fios'],
+  otro: ['Otro|Other|Outro', 'mL']
+};
+const TEC = {tox: 'Toxina botulínica|Botulinum toxin|Toxina botulínica', ah: 'Relleno de ácido hialurónico|Hyaluronic acid filler|Preenchimento de ácido hialurónico', bio: 'Bioestimuladores|Biostimulators|Bioestimuladores', hil: 'Hilos tensores|Thread lifting|Fios tensores', peel: 'Peeling químico|Chemical peel|Peeling químico', meso: 'Mesoterapia y plasma rico en plaquetas|Mesotherapy and platelet-rich plasma|Mesoterapia e plasma rico em plaquetas', laser: 'Láser y luz pulsada intensa|Laser and intense pulsed light|Laser e luz pulsada intensa', rf: 'Radiofrecuencia y ultrasonidos focalizados|Radiofrequency and focused ultrasound|Radiofrequência e ultrassons focalizados', crio: 'Criolipólisis|Cryolipolysis|Criolipólise', doc: 'Ácido desoxicólico submentoniano|Submental deoxycholic acid|Ácido desoxicólico submentoniano'};
+const unidad = t => T3(TIPOS[t] ? TIPOS[t][1] : 'mL');
+const RELLENO = ['ah', 'bio'];
+
+/* ── cálculos ── */
+const toxConc = (uVial, ml) => uVial > 0 && ml > 0 ? uVial / ml : NaN;                     // U/mL
+const toxVol = (uVial, ml, u) => u * ml / uVial;                                            // mL para u unidades
+const ANEST = {lido: {sin: [4.5, 300], con: [7, 500]}, bupi: {sin: [2, 175], con: [3, 225]}};
+function anestMax(farm, conEpi, kg, pct) {
+  const [mgkg, tope] = ANEST[farm][conEpi ? 'con' : 'sin'], mg = Math.min(mgkg * kg, tope);
+  return {mg, ml: mg / (pct * 10), topado: mgkg * kg > tope};
+}
+const fluencia = (eJ, dmm) => eJ / (Math.PI * (dmm / 20) ** 2);
+
+/* ── mapa facial (vista frontal, viewBox 300 × 360): zonas [nombre, riesgo vascular para rellenos: 2 alto · 1 medio · 0], elipses ── */
+const ZONAS = {
+  gla: ['Glabela|Glabella|Glabela', 2], nar: ['Nariz|Nose|Nariz', 2], sng: ['Surco nasogeniano|Nasolabial fold|Sulco nasogeniano', 2],
+  fre: ['Frente|Forehead|Fronte', 2], sie: ['Sien|Temple|Têmpora', 2], inf: ['Región infraorbitaria|Infraorbital region|Região infraorbitária', 2],
+  lab: ['Labios|Lips|Lábios', 1], man: ['Borde mandibular|Mandibular border|Bordo mandibular', 1], pat: ['Patas de gallo|Crow\'s feet|Pés de galinha', 0],
+  mal: ['Pómulo|Cheekbone|Maçã do rosto', 0], men: ['Mentón|Chin|Mento', 0], otra: ['Otra zona|Other area|Outra zona', 0]
+};
+const GEO = {gla: [[150, 128, 15, 15, 0]], nar: [[150, 186, 14, 32, 0]], sng: [[116, 232, 8, 26, 18], [184, 232, 8, 26, -18]], inf: [[108, 176, 24, 11, 0], [192, 176, 24, 11, 0]],
+  sie: [[60, 138, 15, 26, 0], [240, 138, 15, 26, 0]], fre: [[150, 82, 72, 26, 0]], lab: [[150, 262, 30, 11, 0]], man: [[90, 290, 17, 11, 35], [210, 290, 17, 11, -35]],
+  pat: [[82, 156, 11, 13, 0], [218, 156, 11, 13, 0]], mal: [[86, 206, 22, 15, -15], [214, 206, 22, 15, 15]], men: [[150, 304, 24, 15, 0]]};
+const ORDEN_Z = ['gla', 'nar', 'sng', 'inf', 'sie', 'lab', 'man', 'pat', 'mal', 'men', 'fre'];
+function dentro(x, y, [cx, cy, rx, ry, g]) { const a = -g * Math.PI / 180, dx = x - cx, dy = y - cy, u = dx * Math.cos(a) - dy * Math.sin(a), v = dx * Math.sin(a) + dy * Math.cos(a); return (u / rx) ** 2 + (v / ry) ** 2 <= 1; }
+const zonaDe = (x, y) => ORDEN_Z.find(z => GEO[z].some(e => dentro(x, y, e))) || 'otra';
+const lado = x => x < 145 ? 'der' : x > 155 ? 'izq' : 'med';   // derecha del paciente = izquierda de la imagen frontal
+const centroZona = (z, i = 0) => { const e = (GEO[z] || [[150, 180, 0, 0, 0]])[0]; return [e[0] + (i % 3 - 1) * 10, e[1] + (Math.floor(i / 3) % 3 - 1) * 9]; };
+
+/* ── comprobaciones de la sesión: [{n: 'error'|'aviso', txt}] ── */
+const DIA = 86400000;
+function revisa(s) {
+  const out = [], fecha = Date.parse((s.fecha || new Date().toISOString().slice(0, 10)) + 'T00:00:00');
+  if (s.ficha) for (const [t, r] of Object.entries(s.ficha.resultado || {})) if (r.nivel === 2) out.push({n: 'error', txt: T3f('AnamnesIA marcó «no tratar ahora» para {0}.|AnamnesIA flagged «do not treat now» for {0}.|O AnamnesIA assinalou «não tratar agora» para {0}.', TEC[t] ? T3(TEC[t]) : t)});
+  for (const p of s.prods) {
+    const nom = p.nombre || T3(TIPOS[p.tipo][0]);
+    if (!p.lote) out.push({n: 'aviso', txt: T3f('{0}: falta el lote; la trazabilidad no está completa.|{0}: batch missing; traceability is incomplete.|{0}: falta o lote; a rastreabilidade não está completa.', nom)});
+    if (!p.cad) out.push({n: 'aviso', txt: T3f('{0}: falta la caducidad.|{0}: expiry date missing.|{0}: falta a validade.', nom)});
+    else { const d = Math.floor((Date.parse(p.cad + 'T00:00:00') - fecha) / DIA); if (d < 0) out.push({n: 'error', txt: T3f('{0}: caducado el {1}. No lo uses.|{0}: expired on {1}. Do not use it.|{0}: expirado em {1}. Não o use.', nom, p.cad)}); else if (d <= 30) out.push({n: 'aviso', txt: T3f('{0}: caduca en {1} días.|{0}: expires in {1} days.|{0}: expira em {1} dias.', nom, d)}); }
+    const tot = totalProd(s, p.id);
+    if (p.tipo === 'tox') { const disp = num(p.uVial) * (num(p.nEnv) || 1); if (tot > disp + 1e-9) out.push({n: 'error', txt: T3f('{0}: los puntos suman {1} U y solo hay {2} U reconstituidas.|{0}: the points add up to {1} U and only {2} U have been reconstituted.|{0}: os pontos somam {1} U e só há {2} U reconstituídas.', nom, nfx(tot, 1), nfx(disp, 0))}); }
+    if (RELLENO.includes(p.tipo) && num(p.mlEnv) > 0) { const disp = num(p.mlEnv) * (num(p.nEnv) || 1); if (tot > disp + 1e-9) out.push({n: 'error', txt: T3f('{0}: los puntos suman {1} mL y solo hay {2} mL en las jeringas abiertas.|{0}: the points add up to {1} mL and only {2} mL are in the opened syringes.|{0}: os pontos somam {1} mL e só há {2} mL nas seringas abertas.', nom, nfx(tot, 2), nfx(disp, 2))}); }
+  }
+  const zr = new Set();
+  for (const pt of s.pts) {
+    const p = s.prods.find(x => x.id === pt.prod);
+    if (!p) { out.push({n: 'error', txt: T3('Hay puntos sin producto asignado.|There are points without an assigned product.|Há pontos sem produto atribuído.')}); break; }
+    if (!(num(pt.cant) > 0)) { out.push({n: 'aviso', txt: T3('Hay puntos sin cantidad.|There are points without a quantity.|Há pontos sem quantidade.')}); break; }
+  }
+  for (const pt of s.pts) { const p = s.prods.find(x => x.id === pt.prod); if (p && RELLENO.includes(p.tipo) && ZONAS[pt.zona] && ZONAS[pt.zona][1] === 2) zr.add(pt.zona); }
+  if (zr.size) out.push({n: 'aviso', txt: T3f('Relleno en zona de riesgo vascular alto ({0}): poco volumen por punto, inyección lenta y valora la cánula. Aspirar no descarta estar dentro de un vaso. Ten la hialuronidasa a mano.|Filler in a high vascular-risk area ({0}): small volume per point, slow injection and consider a cannula. Aspiration does not rule out being inside a vessel. Keep hyaluronidase to hand.|Preenchimento em zona de risco vascular alto ({0}): pouco volume por ponto, injeção lenta e pondere a cânula. Aspirar não exclui estar dentro de um vaso. Tenha a hialuronidase à mão.', [...zr].map(z => T3(ZONAS[z][0])).join(', '))});
+  return out;
+}
+const totalProd = (s, id) => s.pts.filter(p => p.prod === id).reduce((a, p) => a + (num(p.cant) || 0), 0);
+
+/* ── hoja de tratamiento (Markdown) ── */
+const LADO = {der: 'derecha|right|direita', izq: 'izquierda|left|esquerda', med: 'media|midline|média'};
+function hojaMd(s) {
+  const L = (a, b) => b ? `- **${T3(a)}:** ${b}\n` : '';
+  let md = `## ${T3('Sesión|Session|Sessão')}\n` + L('Paciente|Patient|Doente', s.id) + L('Fecha|Date|Data', s.fecha) + L('Médico|Doctor|Médico', s.medico) + L('Técnicas|Techniques|Técnicas', s.tecnicas);
+  if (s.prods.length) md += `\n## ${T3('Productos y trazabilidad|Products and traceability|Produtos e rastreabilidade')}\n| ${T3('Producto|Product|Produto')} | ${T3('Tipo|Type|Tipo')} | ${T3('Lote|Batch|Lote')} | ${T3('Caducidad|Expiry|Validade')} | ${T3('Preparación|Preparation|Preparação')} | ${T3('Total usado|Total used|Total usado')} |\n|---|---|---|---|---|---|\n` +
+    s.prods.map(p => { const c = toxConc(num(p.uVial), num(p.mlDil)); return `| ${p.nombre || '—'} | ${T3(TIPOS[p.tipo][0])} | ${p.lote || '—'} | ${p.cad || '—'} | ${p.tipo === 'tox' && isFinite(c) ? `${nfx(num(p.uVial), 0)} U ${T3('en|in|em')} ${nfx(num(p.mlDil), 2)} mL = ${nfx(c, 1)} U/mL` : p.mlEnv ? `${nfx(num(p.mlEnv), 2)} mL × ${num(p.nEnv) || 1}` : '—'} | ${nfx(totalProd(s, p.id), 2)} ${unidad(p.tipo)} |`; }).join('\n') + '\n';
+  if (s.pts.length) {
+    md += `\n## ${T3('Puntos de tratamiento|Treatment points|Pontos de tratamento')}\n| # | ${T3('Zona|Area|Zona')} | ${T3('Lado|Side|Lado')} | ${T3('Producto|Product|Produto')} | ${T3('Cantidad|Quantity|Quantidade')} | ${T3('Plano|Plane|Plano')} | ${T3('Técnica|Technique|Técnica')} |\n|---|---|---|---|---|---|---|\n` +
+      s.pts.map((pt, i) => { const p = s.prods.find(x => x.id === pt.prod) || {tipo: 'otro'}; return `| ${i + 1} | ${T3(ZONAS[pt.zona] ? ZONAS[pt.zona][0] : ZONAS.otra[0])} | ${T3(LADO[lado(pt.x)])} | ${p.nombre || '—'} | ${nfx(num(pt.cant), 2)} ${unidad(p.tipo)} | ${pt.plano || ''} | ${pt.tecn || ''} |`; }).join('\n') + '\n';
+    const porZona = {}; s.pts.forEach(pt => { const p = s.prods.find(x => x.id === pt.prod); if (!p) return; const k = `${pt.zona}|${p.id}`; porZona[k] = (porZona[k] || 0) + (num(pt.cant) || 0); });
+    md += `\n## ${T3('Totales por zona|Totals by area|Totais por zona')}\n` + Object.entries(porZona).map(([k, v]) => { const [z, id] = k.split('|'), p = s.prods.find(x => x.id === id); return `- ${T3(ZONAS[z][0])} · ${p.nombre || T3(TIPOS[p.tipo][0])}: ${nfx(v, 2)} ${unidad(p.tipo)}`; }).join('\n') + '\n';
+  }
+  if (s.apa.length) md += `\n## ${T3('Aparatología|Devices|Aparatologia')}\n| ${T3('Equipo|Device|Equipamento')} | nm | ${T3('Spot (mm)|Spot (mm)|Spot (mm)')} | ${T3('Energía (J)|Energy (J)|Energia (J)')} | J/cm² | ${T3('Pulso (ms)|Pulse (ms)|Pulso (ms)')} | ${T3('Pases|Passes|Passagens')} | ${T3('Zona|Area|Zona')} |\n|---|---|---|---|---|---|---|---|\n` +
+    s.apa.map(a => `| ${a.eq || '—'} | ${a.nm || ''} | ${a.spot || ''} | ${a.e || ''} | ${isFinite(fluencia(num(a.e), num(a.spot))) ? nfx(fluencia(num(a.e), num(a.spot)), 1) : (a.flu || '')} | ${a.ms || ''} | ${a.pases || ''} | ${a.zona || ''} |`).join('\n') + '\n';
+  md += `\n## ${T3('Incidencias inmediatas|Immediate events|Incidências imediatas')}\n${s.inmed === 'si' ? (s.inmedTx || T3('Sí|Yes|Sim')) : T3('Ninguna|None|Nenhuma')}\n`;
+  if (s.notas) md += `\n## ${T3('Observaciones|Notes|Observações')}\n${s.notas}\n`;
+  const rv = revisa(s); if (rv.length) md += `\n## ${T3('Avisos de la sesión|Session warnings|Avisos da sessão')}\n` + rv.map(x => `- ${x.txt}`).join('\n') + '\n';
+  return md;
+}
+/* sesión para SeguimIA (datos, no frases) */
+const sesionKit = s => ({formato: 'kitesteticia-sesion/1', app: 'PautIA', fecha: s.fecha, paciente: {id: s.id}, tecnicas: s.tecnicas,
+  productos: s.prods.map(p => ({id: p.id, tipo: p.tipo, nombre: p.nombre, lote: p.lote, cad: p.cad, total: totalProd(s, p.id)})),
+  puntos: s.pts.map(pt => ({zona: pt.zona, lado: lado(pt.x), x: Math.round(pt.x), y: Math.round(pt.y), prod: pt.prod, cant: num(pt.cant), plano: pt.plano || '', tecn: pt.tecn || ''})),
+  aparatologia: s.apa, incidencias: s.inmed === 'si' ? (s.inmedTx || 'si') : '', avisos: revisa(s).map(x => x.n)});
+if (typeof module !== 'undefined') module.exports = {T3, num, TEC, TIPOS, unidad, toxConc, toxVol, anestMax, fluencia, ZONAS, GEO, zonaDe, lado, centroZona, revisa, totalProd, hojaMd, sesionKit};
+
+/* ══ PautIA · interfaz. Lógica en nucleo.js. Sin IA y sin red. Textos propios «es|en|pt» con T3(). ══ */
+const STEPS = ['Inicio', 'Sesión', 'Productos', 'Mapa', 'Hoja'];
+const NAV = [['Empezar', 'Prueba el ejemplo: toxina en el tercio superior y relleno en el pómulo.'], ['Siguiente: productos', 'Con la ficha de AnamnesIA no repites datos.'], ['Siguiente: mapa', 'Sin lote no hay trazabilidad.'], ['Siguiente: hoja', 'Toca la cara para añadir un punto.'], ['Volver al inicio', 'Descarga la hoja o pasa la sesión a SeguimIA.']];
+const RENDER = {0: pintaInicio, 1: pintaSes, 2: pintaPro, 3: pintaMapa, 4: pintaHoja};
+const GLOS = [
+  ['¿Qué es PautIA?', 'La cuarta app del Kit EstéticIA: el registro del procedimiento junto a la camilla, con los cálculos, el mapa de puntos y la trazabilidad de cada producto.'],
+  ['El mapa', 'Elige el producto activo y toca la cara: el punto se añade con la cantidad por defecto y se asigna a su zona y lado. Puedes cambiar la zona, la cantidad, el plano y la técnica en la lista. Si no usas pantalla táctil ni ratón, añade el punto desde la lista de zonas.'],
+  ['Los avisos', 'La app avisa si un producto está caducado o caduca pronto, si falta el lote, si los puntos suman más de lo que hay reconstituido o en las jeringas abiertas, si hay relleno en una zona de riesgo vascular alto y si AnamnesIA marcó «no tratar ahora».'],
+  ['Los cálculos', 'Reconstitución de la toxina con las unidades del vial y el volumen de suero; dosis máxima orientativa de anestésico local por peso; fluencia del láser a partir de la energía y el diámetro del spot. La app no decide dosis: hace la aritmética con tus datos.'],
+  ['La sesión para SeguimIA', 'El fichero JSON de la sesión guarda productos, lotes, puntos y parámetros para que SeguimIA pueda comparar en la revisión.'],
+  ['Sin IA y sin conexión', 'La app no usa inteligencia artificial ni envía nada a ningún servidor.'],
+  ['Límites', 'Es una ayuda para médicos formados. Manda la ficha técnica de cada producto y el criterio clínico. Las zonas del mapa son orientativas y no sustituyen al conocimiento anatómico.']
+];
+const PAL = ['#B3203A', '#1F6FB2', '#0E8C7A', '#C98200', '#6B4FD8', '#2E4B6B'];
+const PLANOS = ['', 'Intradérmico|Intradermal|Intradérmico', 'Subcutáneo|Subcutaneous|Subcutâneo', 'Intramuscular|Intramuscular|Intramuscular', 'Supraperióstico|Supraperiosteal|Supraperióstico'];
+const TECNS = ['', 'Aguja|Needle|Agulha', 'Cánula|Cannula|Cânula'];
+const DEF_CANT = {tox: '4', ah: '0.1', bio: '0.2', hil: '1', otro: '0.1'};
+const S0 = () => ({id: '', fecha: new Date().toISOString().slice(0, 10), medico: '', tecnicas: '', ficha: null, kg: '', prods: [], pts: [], apa: [], activo: null, notas: '', inmed: 'no', inmedTx: '', zonas: true, an: {farm: 'lido', epi: 'no', pct: '1'}});
+let S = {s: S0(), hist: [], esEjemplo: false};
+const uid2 = () => Math.random().toString(36).slice(2, 7);
+const colorDe = id => PAL[Math.max(0, S.s.prods.findIndex(p => p.id === id)) % PAL.length];
+const fld = (id, lab, val, attrs = '') => `<div class="field"><label for="${id}">${esc(T3(lab))}</label><input id="${id}" type="text" value="${esc(val ?? '')}" autocomplete="off" ${attrs}></div>`;
+
+/* ── cargar la ficha de AnamnesIA ── */
+async function cargaFicha(file) {
+  try {
+    const o = JSON.parse(await file.text());
+    if (!o || o.formato !== 'kitesteticia-paciente/1') throw new Error(T3('El fichero no es una ficha de AnamnesIA (formato kitesteticia-paciente/1).|The file is not an AnamnesIA file (format kitesteticia-paciente/1).|O ficheiro não é uma ficha do AnamnesIA (formato kitesteticia-paciente/1).'));
+    const p = o.paciente || {};
+    S.s.ficha = {id: String(p.id || ''), kg: String(p.kg || ''), tecnicas: (o.tecnicas || []).filter(t => TEC[t]), resultado: o.resultado || {}};
+    S.s.id = S.s.ficha.id || S.s.id; S.s.kg = S.s.ficha.kg || S.s.kg; S.s.tecnicas = S.s.ficha.tecnicas.map(t => T3(TEC[t])).join(', ');
+    S.esEjemplo = false; await guardaYa(); go(1); toast(T3f('Ficha de {0} cargada|File for {0} loaded|Ficha de {0} carregada', S.s.id || '—'));
+  } catch (e) { toast(e.message, 7000); }
+}
+document.addEventListener('change', e => { if (e.target.id === 'fFicha') { const f = e.target.files[0]; e.target.value = ''; if (f) cargaFicha(f); } });
+
+/* ── 0 · inicio ── */
+function pintaInicio() { $('inicioProj').innerHTML = (S.s.prods.length || S.s.pts.length) ? `${esc(T3f('Tienes una sesión en curso con {0} punto(s).|You have a session in progress with {0} point(s).|Tem uma sessão em curso com {0} ponto(s).', S.s.pts.length))} <button class="btn btn-ghost btn-sm" id="btnCont" type="button">${esc(T3('Continuar|Continue|Continuar'))}</button>` : ''; }
+$('btnStart').onclick = () => { if (S.esEjemplo) { S.s = S0(); S.esEjemplo = false; guarda(); } go(1); };
+$('btnEjemplo').onclick = () => { aplicaEjemplo(); guarda(); go(3); toast(T3('Ejemplo de demostración|Demonstration example|Exemplo de demonstração')); };
+document.addEventListener('click', e => { if (e.target.closest('#btnCont')) go(3); });
+
+/* ── 1 · sesión ── */
+function pintaSes() {
+  const s = S.s, f = s.ficha;
+  $('sesBox').innerHTML = `<div class="card">${f ? `<div class="okbox">${ico('check')} ${esc(T3f('Ficha de AnamnesIA cargada: {0}.|AnamnesIA file loaded: {0}.|Ficha do AnamnesIA carregada: {0}.', f.id || '—'))}</div>` : `<p class="help">${esc(T3('Puedes cargar la ficha que descarga AnamnesIA para traer el identificador, el peso, las técnicas y los avisos.|You can load the file downloaded from AnamnesIA to bring the identifier, weight, techniques and warnings.|Pode carregar a ficha que o AnamnesIA descarrega para trazer o identificador, o peso, as técnicas e os avisos.'))}</p>`}
+      <div class="actions" style="margin-top:8px"><label class="btn btn-ghost btn-sm" for="fFicha">${ico('upload')}<span>${esc(T3('Cargar la ficha de AnamnesIA|Load the AnamnesIA file|Carregar a ficha do AnamnesIA'))}</span></label><input type="file" id="fFicha" accept=".json,application/json" class="vh"></div></div>
+    ${f && Object.entries(f.resultado).some(([, r]) => r.nivel === 2) ? `<div class="card p-bloq">${revisa({...s, prods: [], pts: []}).map(x => `<p>${ico('flame')} ${esc(x.txt)}</p>`).join('')}</div>` : ''}
+    <div class="card"><div class="p-f3">${fld('s_id', 'Identificador del paciente|Patient identifier|Identificador do doente', s.id, 'data-s="id"')}${fld('s_fecha', 'Fecha|Date|Data', s.fecha, 'data-s="fecha" type="date"').replace('type="text" ', '')}${fld('s_kg', 'Peso (kg)|Weight (kg)|Peso (kg)', s.kg, 'data-s="kg" inputmode="decimal"')}</div>
+      <div class="p-f2">${fld('s_medico', 'Médico|Doctor|Médico', s.medico, 'data-s="medico"')}${fld('s_tec', 'Técnicas de la sesión|Techniques in the session|Técnicas da sessão', s.tecnicas, 'data-s="tecnicas"')}</div></div>`;
+  $$('#sesBox [data-s]').forEach(x => x.oninput = () => { S.s[x.dataset.s] = x.value; S.esEjemplo = false; guarda(); });
+}
+
+/* ── 2 · productos y cálculos ── */
+function pintaPro() {
+  const s = S.s, an = s.an, kg = num(s.kg);
+  const filaP = p => {
+    const c = toxConc(num(p.uVial), num(p.mlDil)), tot = totalProd(s, p.id);
+    return `<div class="card p-prod" style="--c:${colorDe(p.id)}"><div class="p-ph"><span class="p-dot"></span><select data-p="${p.id}" data-k="tipo" aria-label="${esc(T3('Tipo|Type|Tipo'))}">${Object.entries(TIPOS).map(([k, v]) => `<option value="${k}" ${p.tipo === k ? 'selected' : ''}>${esc(T3(v[0]))}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" type="button" data-pdel="${p.id}" aria-label="${esc(T3('Quitar producto|Remove product|Remover produto'))}">${ico('trash')}</button></div>
+      <div class="p-f3">${fld('n_' + p.id, 'Nombre comercial|Brand name|Nome comercial', p.nombre, `data-p="${p.id}" data-k="nombre"`)}${fld('l_' + p.id, 'Lote|Batch|Lote', p.lote, `data-p="${p.id}" data-k="lote"`)}<div class="field"><label for="c_${p.id}">${esc(T3('Caducidad|Expiry|Validade'))}</label><input id="c_${p.id}" type="date" value="${esc(p.cad)}" data-p="${p.id}" data-k="cad"></div></div>
+      ${p.tipo === 'tox' ? `<div class="p-f3">${fld('u_' + p.id, 'Unidades por vial|Units per vial|Unidades por frasco', p.uVial, `data-p="${p.id}" data-k="uVial" inputmode="decimal"`)}${fld('d_' + p.id, 'Suero añadido (mL)|Saline added (mL)|Soro adicionado (mL)', p.mlDil, `data-p="${p.id}" data-k="mlDil" inputmode="decimal"`)}${fld('e_' + p.id, 'Viales reconstituidos|Vials reconstituted|Frascos reconstituídos', p.nEnv, `data-p="${p.id}" data-k="nEnv" inputmode="numeric"`)}</div>
+        <div class="p-calc">${isFinite(c) ? esc(T3f('{0} U/mL · 0,1 mL = {1} U · usadas {2} U ({3} mL)|{0} U/mL · 0.1 mL = {1} U · used {2} U ({3} mL)|{0} U/mL · 0,1 mL = {1} U · usadas {2} U ({3} mL)', nfx(c, 1), nfx(c / 10, 2), nfx(tot, 1), nfx(toxVol(num(p.uVial), num(p.mlDil), tot), 2))) : esc(T3('Escribe las unidades del vial y el suero añadido.|Enter the vial units and the saline added.|Escreva as unidades do frasco e o soro adicionado.'))}</div>`
+      : `<div class="p-f3">${p.tipo !== 'hil' ? fld('m_' + p.id, 'mL por jeringa|mL per syringe|mL por seringa', p.mlEnv, `data-p="${p.id}" data-k="mlEnv" inputmode="decimal"`) : ''}${fld('e_' + p.id, p.tipo === 'hil' ? 'Envases abiertos|Packs opened|Embalagens abertas' : 'Jeringas abiertas|Syringes opened|Seringas abertas', p.nEnv, `data-p="${p.id}" data-k="nEnv" inputmode="numeric"`)}</div><div class="p-calc">${esc(T3f('Usado: {0} {1}|Used: {0} {1}|Usado: {0} {1}', nfx(tot, 2), unidad(p.tipo)))}</div>`}</div>`;
+  };
+  const am = isFinite(kg) && kg > 0 ? anestMax(an.farm, an.epi === 'si', kg, num(an.pct) || 1) : null;
+  $('proBox').innerHTML = `${s.prods.map(filaP).join('')}<div class="actions" style="margin:0 0 18px"><button class="btn btn-primary" id="addProd" type="button">${ico('plus')}<span>${esc(T3('Añadir producto|Add product|Adicionar produto'))}</span></button></div>
+    <div class="card"><h3>${esc(T3('Anestésico local: dosis máxima orientativa|Local anaesthetic: approximate maximum dose|Anestésico local: dose máxima aproximada'))}</h3><div class="p-f3">
+      <div class="field"><label for="an_farm">${esc(T3('Fármaco|Drug|Fármaco'))}</label><select id="an_farm" data-an="farm">${[['lido', 'Lidocaína|Lidocaine|Lidocaína'], ['bupi', 'Bupivacaína|Bupivacaine|Bupivacaína']].map(([k, l]) => `<option value="${k}" ${an.farm === k ? 'selected' : ''}>${esc(T3(l))}</option>`).join('')}</select></div>
+      <div class="field"><label for="an_epi">${esc(T3('Con adrenalina|With adrenaline|Com adrenalina'))}</label><select id="an_epi" data-an="epi">${[['no', 'No|No|Não'], ['si', 'Sí|Yes|Sim']].map(([k, l]) => `<option value="${k}" ${an.epi === k ? 'selected' : ''}>${esc(T3(l))}</option>`).join('')}</select></div>
+      ${fld('an_pct', 'Concentración (%)|Concentration (%)|Concentração (%)', an.pct, 'data-an="pct" inputmode="decimal"')}</div>
+      <div class="p-calc">${am ? esc(T3f('Hasta {0} mg, es decir, {1} mL para {2} kg.|Up to {0} mg, that is, {1} mL for {2} kg.|Até {0} mg, ou seja, {1} mL para {2} kg.', nfx(am.mg, 0), nfx(am.ml, 1), nfx(kg, 0))) + (am.topado ? ' ' + esc(T3('Se aplica el tope absoluto.|The absolute cap applies.|Aplica-se o limite absoluto.')) : '') : esc(T3('Escribe el peso en el paso de la sesión.|Enter the weight in the session step.|Escreva o peso no passo da sessão.'))}</div>
+      <p class="help">${esc(T3('Valores orientativos habituales en adultos; comprueba la ficha técnica y reduce en ancianos, hepatopatía y zonas muy vascularizadas.|Usual approximate adult values; check the product information and reduce in the elderly, liver disease and highly vascular areas.|Valores aproximados habituais em adultos; verifique o resumo das características e reduza em idosos, hepatopatia e zonas muito vascularizadas.'))}</p></div>
+    <div class="card"><h3>${esc(T3('Parámetros de aparatología|Device parameters|Parâmetros de aparatologia'))}</h3>${s.apa.length ? `<div class="table-wrap"><table class="p-apa"><tr><th>${esc(T3('Equipo|Device|Equipamento'))}</th><th>nm</th><th>${esc(T3('Spot (mm)|Spot (mm)|Spot (mm)'))}</th><th>${esc(T3('Energía (J)|Energy (J)|Energia (J)'))}</th><th>J/cm²</th><th>${esc(T3('Pulso (ms)|Pulse (ms)|Pulso (ms)'))}</th><th>${esc(T3('Pases|Passes|Passagens'))}</th><th>${esc(T3('Zona|Area|Zona'))}</th><th></th></tr>${s.apa.map((a, i) => `<tr>${['eq', 'nm', 'spot', 'e'].map(k => `<td><input type="text" data-a="${i}" data-k="${k}" value="${esc(a[k] || '')}" aria-label="${esc(k)}"></td>`).join('')}<td class="p-flu">${isFinite(fluencia(num(a.e), num(a.spot))) ? nfx(fluencia(num(a.e), num(a.spot)), 1) : '—'}</td>${['ms', 'pases', 'zona'].map(k => `<td><input type="text" data-a="${i}" data-k="${k}" value="${esc(a[k] || '')}" aria-label="${esc(k)}"></td>`).join('')}<td><button class="btn btn-ghost btn-sm" type="button" data-adel="${i}" aria-label="${esc(T3('Quitar|Remove|Remover'))}">${ico('trash')}</button></td></tr>`).join('')}</table></div>` : ''}
+      <button class="btn btn-ghost btn-sm" id="addApa" type="button">${ico('plus')}<span>${esc(T3('Añadir equipo|Add device|Adicionar equipamento'))}</span></button><p class="help">${esc(T3('La fluencia se calcula con la energía por pulso y el diámetro del spot.|Fluence is calculated from the energy per pulse and the spot diameter.|A fluência calcula-se com a energia por pulso e o diâmetro do spot.'))}</p></div>`;
+  $$('[data-p]').forEach(x => x.addEventListener(x.tagName === 'SELECT' || x.type === 'date' ? 'change' : 'input', () => { const p = S.s.prods.find(q => q.id === x.dataset.p); p[x.dataset.k] = x.value; S.esEjemplo = false; guarda(); if (x.tagName === 'SELECT' || x.type === 'date' || ['uVial', 'mlDil'].includes(x.dataset.k)) { clearTimeout(x._t); x._t = setTimeout(() => { const f = document.activeElement?.id; pintaPro(); if (f && $(f)) $(f).focus(); }, x.tagName === 'SELECT' ? 0 : 500); } }));
+  $$('[data-pdel]').forEach(b => b.onclick = () => { if (S.s.pts.some(p => p.prod === b.dataset.pdel) && !confirm(T3('Ese producto tiene puntos en el mapa. ¿Quitarlo con sus puntos?|That product has points on the map. Remove it with its points?|Esse produto tem pontos no mapa. Removê-lo com os seus pontos?'))) return; S.s.prods = S.s.prods.filter(p => p.id !== b.dataset.pdel); S.s.pts = S.s.pts.filter(p => p.prod !== b.dataset.pdel); guarda(); pintaPro(); });
+  $('addProd').onclick = () => { const p = {id: uid2(), tipo: 'tox', nombre: '', lote: '', cad: '', uVial: '', mlDil: '', nEnv: '1', mlEnv: ''}; S.s.prods.push(p); S.s.activo = p.id; guarda(); pintaPro(); $('n_' + p.id).focus(); };
+  $$('[data-an]').forEach(x => x.addEventListener(x.tagName === 'SELECT' ? 'change' : 'input', () => { S.s.an[x.dataset.an] = x.value; guarda(); if (x.tagName === 'SELECT') pintaPro(); else { clearTimeout(x._t); x._t = setTimeout(() => { pintaPro(); $('an_pct').focus(); }, 500); } }));
+  $$('[data-a]').forEach(x => x.oninput = () => { S.s.apa[+x.dataset.a][x.dataset.k] = x.value; guarda(); if (['e', 'spot'].includes(x.dataset.k)) { const a = S.s.apa[+x.dataset.a], fl = fluencia(num(a.e), num(a.spot)); x.closest('tr').querySelector('.p-flu').textContent = isFinite(fl) ? nfx(fl, 1) : '—'; } });
+  $$('[data-adel]').forEach(b => b.onclick = () => { S.s.apa.splice(+b.dataset.adel, 1); guarda(); pintaPro(); });
+  $('addApa').onclick = () => { S.s.apa.push({eq: '', nm: '', spot: '', e: '', ms: '', pases: '', zona: ''}); guarda(); pintaPro(); };
+}
+
+/* ── 3 · mapa ── */
+let SEL = null;
+function caraSVG() {
+  const s = S.s, zs = s.zonas ? Object.entries(GEO).map(([k, es]) => es.map(([cx, cy, rx, ry, g]) => `<ellipse class="p-z p-r${ZONAS[k][1]}" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(${g} ${cx} ${cy})"/>`).join('')).join('') : '';
+  const pts = s.pts.map((p, i) => `<g class="p-pt${SEL === i ? ' p-sel' : ''}" data-pt="${i}"><circle cx="${p.x}" cy="${p.y}" r="6.5" fill="${colorDe(p.prod)}"/><text x="${p.x}" y="${p.y + 3}" text-anchor="middle">${i + 1}</text></g>`).join('');
+  return `<svg class="p-cara" id="cara" viewBox="0 0 300 360" role="img" aria-label="${esc(T3('Esquema frontal de la cara: toca para añadir un punto. La lista de abajo tiene todos los puntos.|Frontal diagram of the face: tap to add a point. The list below has all the points.|Esquema frontal do rosto: toque para adicionar um ponto. A lista abaixo tem todos os pontos.'))}">
+    <ellipse cx="150" cy="185" rx="108" ry="150" fill="#FBEDE6" stroke="#D9A27E" stroke-width="2"/>
+    <path d="M92 150 q16 -10 32 0 q-16 10 -32 0 M176 150 q16 -10 32 0 q-16 10 -32 0" fill="#fff" stroke="#0F2237" stroke-width="1.5"/><circle cx="108" cy="150" r="4" fill="#0F2237"/><circle cx="192" cy="150" r="4" fill="#0F2237"/>
+    <path d="M86 128 q22 -12 44 -2 M170 126 q22 -10 44 2" fill="none" stroke="#6B3E1D" stroke-width="3" stroke-linecap="round"/>
+    <path d="M150 156 v52 q-10 8 -14 4 M150 208 q10 8 14 4" fill="none" stroke="#C28A6A" stroke-width="1.5"/><path d="M124 262 q26 -10 52 0 q-26 14 -52 0" fill="#E9A3A0" stroke="#B85C5C" stroke-width="1"/>
+    ${zs}${pts}<text x="8" y="352" class="p-lado">${esc(T3('Derecha del paciente|Patient\'s right|Direita do doente'))}</text><text x="292" y="352" text-anchor="end" class="p-lado">${esc(T3('Izquierda|Left|Esquerda'))}</text></svg>`;
+}
+function pintaMapa() {
+  const s = S.s;
+  if (!s.prods.length) { $('mapBox').innerHTML = `<div class="card"><p class="empty">${esc(T3('Añade antes al menos un producto en el paso anterior.|First add at least one product in the previous step.|Adicione primeiro pelo menos um produto no passo anterior.'))}</p></div>`; return; }
+  if (!s.prods.some(p => p.id === s.activo)) s.activo = s.prods[0].id;
+  const act = s.prods.find(p => p.id === s.activo), rv = revisa(s).filter(x => x.n === 'error' || /riesgo vascular|vascular-risk|risco vascular/.test(x.txt));
+  $('mapBox').innerHTML = `<div class="p-cols"><div class="card p-map">
+      <div class="p-prods" role="radiogroup" aria-label="${esc(T3('Producto activo|Active product|Produto ativo'))}">${s.prods.map(p => `<label class="p-pb" style="--c:${colorDe(p.id)}"><input type="radio" name="activo" value="${p.id}" ${p.id === s.activo ? 'checked' : ''}> <span>${esc(p.nombre || T3(TIPOS[p.tipo][0]))}</span></label>`).join('')}</div>
+      <div class="p-defc">${fld('defc', 'Cantidad por punto|Quantity per point|Quantidade por ponto', act.defc ?? DEF_CANT[act.tipo], 'inputmode="decimal"')}<span class="muted">${esc(unidad(act.tipo))}</span></div>
+      ${caraSVG()}
+      <div class="p-mapa-acc"><label class="fa-chk"><input type="checkbox" id="verZ" ${s.zonas ? 'checked' : ''}> <span>${esc(T3('Mostrar zonas de riesgo vascular|Show vascular danger zones|Mostrar zonas de risco vascular'))}</span></label>
+        <div class="p-addz"><select id="addZ" aria-label="${esc(T3('Zona|Area|Zona'))}">${Object.keys(GEO).map(z => `<option value="${z}">${esc(T3(ZONAS[z][0]))}</option>`).join('')}</select><button class="btn btn-ghost btn-sm" id="addZb" type="button">${ico('plus')}<span>${esc(T3('Añadir punto en la zona|Add point in the area|Adicionar ponto na zona'))}</span></button><button class="btn btn-ghost btn-sm" id="undo" type="button" ${s.pts.length ? '' : 'disabled'}>${ico('x')}<span>${esc(T3('Quitar el último|Remove the last one|Remover o último'))}</span></button></div></div>
+      <p class="help p-ley"><span class="p-k p-r2"></span>${esc(T3('riesgo vascular alto para rellenos|high vascular risk for fillers|risco vascular alto para preenchimentos'))} <span class="p-k p-r1"></span>${esc(T3('medio|medium|médio'))}</p></div>
+    <div><div class="card"><h3>${esc(T3('Totales|Totals|Totais'))}</h3><ul class="fa-ul">${s.prods.map(p => { const t = totalProd(s, p.id); return `<li><span class="p-dot" style="--c:${colorDe(p.id)}"></span> <b>${esc(p.nombre || T3(TIPOS[p.tipo][0]))}</b>: ${nfx(t, 2)} ${esc(unidad(p.tipo))}${p.tipo === 'tox' && isFinite(toxConc(num(p.uVial), num(p.mlDil))) ? ` (${nfx(toxVol(num(p.uVial), num(p.mlDil), t), 2)} mL)` : ''} · ${s.pts.filter(x => x.prod === p.id).length} ${esc(T3('puntos|points|pontos'))}</li>`; }).join('')}</ul>
+      ${rv.map(x => `<div class="${x.n === 'error' ? 'aviso p-err' : 'aviso'}">${esc(x.txt)}</div>`).join('')}</div></div></div>
+    <div class="card"><h3>${esc(T3('Puntos|Points|Pontos'))} <span class="fa-chip">${s.pts.length}</span></h3>${s.pts.length ? `<div class="table-wrap"><table class="p-tab"><tr><th>#</th><th>${esc(T3('Zona|Area|Zona'))}</th><th>${esc(T3('Producto|Product|Produto'))}</th><th>${esc(T3('Cantidad|Quantity|Quantidade'))}</th><th>${esc(T3('Plano|Plane|Plano'))}</th><th>${esc(T3('Técnica|Technique|Técnica'))}</th><th></th></tr>${s.pts.map((p, i) => `<tr class="${SEL === i ? 'p-trsel' : ''}"><td>${i + 1}</td><td><select data-q="${i}" data-k="zona" aria-label="${esc(T3('Zona|Area|Zona'))}">${Object.keys(ZONAS).map(z => `<option value="${z}" ${p.zona === z ? 'selected' : ''}>${esc(T3(ZONAS[z][0]))}</option>`).join('')}</select></td><td><select data-q="${i}" data-k="prod" aria-label="${esc(T3('Producto|Product|Produto'))}">${s.prods.map(q => `<option value="${q.id}" ${p.prod === q.id ? 'selected' : ''}>${esc(q.nombre || T3(TIPOS[q.tipo][0]))}</option>`).join('')}</select></td><td><input type="text" inputmode="decimal" class="p-cant" data-q="${i}" data-k="cant" value="${esc(p.cant)}" aria-label="${esc(T3('Cantidad|Quantity|Quantidade'))}"></td><td><select data-q="${i}" data-k="plano" aria-label="${esc(T3('Plano|Plane|Plano'))}">${PLANOS.map(o => `<option value="${o ? esc(T3(o)) : ''}" ${p.plano === (o ? T3(o) : '') ? 'selected' : ''}>${o ? esc(T3(o)) : '—'}</option>`).join('')}</select></td><td><select data-q="${i}" data-k="tecn" aria-label="${esc(T3('Técnica|Technique|Técnica'))}">${TECNS.map(o => `<option value="${o ? esc(T3(o)) : ''}" ${p.tecn === (o ? T3(o) : '') ? 'selected' : ''}>${o ? esc(T3(o)) : '—'}</option>`).join('')}</select></td><td><button class="btn btn-ghost btn-sm" type="button" data-qdel="${i}" aria-label="${esc(T3('Quitar punto|Remove point|Remover ponto'))}">${ico('trash')}</button></td></tr>`).join('')}</table></div>` : `<p class="empty">${esc(T3('Toca la cara para añadir el primer punto.|Tap the face to add the first point.|Toque no rosto para adicionar o primeiro ponto.'))}</p>`}</div>`;
+  enlazaMapa();
+}
+function addPunto(x, y, zona) {
+  const s = S.s, act = s.prods.find(p => p.id === s.activo);
+  s.pts.push({x, y, zona: zona || zonaDe(x, y), prod: act.id, cant: String(act.defc ?? DEF_CANT[act.tipo]), plano: '', tecn: ''}); SEL = s.pts.length - 1; S.esEjemplo = false; guarda(); pintaMapa();
+}
+function enlazaMapa() {
+  const s = S.s, svg = $('cara');
+  svg.addEventListener('click', ev => {
+    const g = ev.target.closest('[data-pt]'); if (g) { SEL = +g.dataset.pt; pintaMapa(); return; }
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    if (p.x < 0 || p.x > 300 || p.y < 0 || p.y > 345) return; addPunto(Math.round(p.x), Math.round(p.y));
+  });
+  $$('[name=activo]').forEach(x => x.onchange = () => { s.activo = x.value; guarda(); pintaMapa(); });
+  $('defc').oninput = () => { s.prods.find(p => p.id === s.activo).defc = $('defc').value; guarda(); };
+  $('verZ').onchange = () => { s.zonas = $('verZ').checked; guarda(); pintaMapa(); };
+  $('addZb').onclick = () => { const z = $('addZ').value, n = s.pts.filter(p => p.zona === z).length, [x, y] = centroZona(z, n); addPunto(x, y, z); $('addZ').value = z; $('addZb').focus(); };
+  $('undo').onclick = () => { s.pts.pop(); SEL = null; guarda(); pintaMapa(); };
+  $$('[data-q]').forEach(x => x.addEventListener(x.tagName === 'SELECT' ? 'change' : 'input', () => { const p = s.pts[+x.dataset.q]; p[x.dataset.k] = x.value; if (x.dataset.k === 'zona') { const [cx, cy] = centroZona(x.value, +x.dataset.q); p.x = cx; p.y = cy; } guarda(); if (x.tagName === 'SELECT') pintaMapa(); else { clearTimeout(x._t); x._t = setTimeout(() => { const f = x.dataset.q; pintaMapa(); const el = document.querySelector(`.p-cant[data-q="${f}"]`); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 700); } }));
+  $$('[data-qdel]').forEach(b => b.onclick = () => { s.pts.splice(+b.dataset.qdel, 1); SEL = null; guarda(); pintaMapa(); });
+}
+
+/* ── 4 · hoja ── */
+function mdHtml(md) {
+  const inl = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'), out = []; let tb = null;
+  const cierra = () => { if (tb) { out.push(`<div class="table-wrap"><table>${tb.map((f, i) => `<tr>${f.map(c => i ? `<td>${inl(c)}</td>` : `<th>${inl(c)}</th>`).join('')}</tr>`).join('')}</table></div>`); tb = null; } };
+  for (const l of md.split('\n')) { if (/^\|/.test(l)) { if (!/^\|[-| ]+\|$/.test(l)) (tb = tb || []).push(l.slice(1, -1).split('|').map(x => x.trim())); continue; } cierra(); if (/^## /.test(l)) out.push(`<h3>${inl(l.slice(3))}</h3>`); else if (/^- /.test(l)) out.push(`<p class="p-li">${inl(l.slice(2))}</p>`); else if (l.trim()) out.push(`<p>${inl(l)}</p>`); }
+  cierra(); return out.join('');
+}
+function pintaHoja() {
+  const s = S.s, rv = revisa(s), md = hojaMd(s);
+  $('hojBox').innerHTML = `<div class="card"><h3>${esc(T3('Avisos de la sesión|Session warnings|Avisos da sessão'))} <span class="fa-chip ${rv.some(x => x.n === 'error') ? 'error' : rv.length ? 'aviso' : 'ok'}">${rv.length}</span></h3>${rv.length ? rv.map(x => `<div class="${x.n === 'error' ? 'aviso p-err' : 'aviso'}">${esc(x.txt)}</div>`).join('') : `<div class="okbox">${esc(T3('Sin avisos: lotes y caducidades completos y cantidades dentro de lo preparado.|No warnings: batches and expiry dates complete and quantities within what was prepared.|Sem avisos: lotes e validades completos e quantidades dentro do preparado.'))}</div>`}</div>
+    <div class="card"><fieldset class="p-sn"><legend>${esc(T3('¿Incidencias inmediatas durante o tras el procedimiento?|Immediate events during or after the procedure?|Incidências imediatas durante ou após o procedimento?'))}</legend>${[['no', 'No|No|Não'], ['si', 'Sí|Yes|Sim']].map(([k, l]) => `<label><input type="radio" name="inmed" value="${k}" ${s.inmed === k ? 'checked' : ''}> <span>${esc(T3(l))}</span></label>`).join('')}</fieldset>
+      ${s.inmed === 'si' ? `<div class="field"><label for="inmedTx">${esc(T3('Qué ocurrió y qué se hizo|What happened and what was done|O que aconteceu e o que se fez'))}</label><textarea id="inmedTx" rows="2">${esc(s.inmedTx)}</textarea></div><p class="help">${esc(T3('Si fue una urgencia, regístrala también en UrgencIA.|If it was an emergency, also record it in UrgencIA.|Se foi uma urgência, registe-a também no UrgencIA.'))}</p>` : ''}
+      <div class="field"><label for="notas">${esc(T3('Observaciones|Notes|Observações'))}</label><textarea id="notas" rows="2">${esc(s.notas)}</textarea></div></div>
+    <div class="card p-hoja" id="hojaVista"><h2>${esc(T3('Hoja de tratamiento|Treatment sheet|Folha de tratamento'))}</h2>${mdHtml(md)}</div>
+    <div class="card"><div class="actions" style="margin-top:0"><button class="btn btn-word" id="hWord" type="button">${ico('doc')}<span>Word</span></button><button class="btn btn-ghost" id="hPrint" type="button">${ico('print')}<span>${esc(T3('Imprimir|Print|Imprimir'))}</span></button><button class="btn btn-ghost" id="hJson" type="button">${ico('download')}<span>${esc(T3('Sesión para SeguimIA (JSON)|Session for SeguimIA (JSON)|Sessão para o SeguimIA (JSON)'))}</span></button><button class="btn btn-ghost" id="hNueva" type="button">${ico('plus')}<span>${esc(T3('Guardar y nueva sesión|Save and new session|Guardar e nova sessão'))}</span></button></div></div>
+    ${S.hist.length ? `<div class="card"><h3>${esc(T3('Sesiones guardadas|Saved sessions|Sessões guardadas'))}</h3><div class="table-wrap"><table><tr><th>${esc(T3('Fecha|Date|Data'))}</th><th>${esc(T3('Paciente|Patient|Doente'))}</th><th>${esc(T3('Puntos|Points|Pontos'))}</th><th></th></tr>${S.hist.map((h, i) => `<tr><td>${esc(h.fecha)}</td><td>${esc(h.id || '—')}</td><td>${h.pts.length}</td><td><button class="btn btn-ghost btn-sm" type="button" data-abre="${i}">${esc(T3('Abrir|Open|Abrir'))}</button></td></tr>`).join('')}</table></div></div>` : ''}`;
+  $$('[name=inmed]').forEach(x => x.onchange = () => { s.inmed = x.value; guarda(); pintaHoja(); });
+  if ($('inmedTx')) $('inmedTx').oninput = () => { s.inmedTx = $('inmedTx').value; guarda(); };
+  $('notas').oninput = () => { s.notas = $('notas').value; guarda(); clearTimeout($('notas')._t); $('notas')._t = setTimeout(() => { $('hojaVista').innerHTML = `<h2>${esc(T3('Hoja de tratamiento|Treatment sheet|Folha de tratamento'))}</h2>` + mdHtml(hojaMd(s)); }, 400); };
+  const nom = `sesion_${(s.id || 'paciente').replace(/[^\w-]+/g, '_')}_${s.fecha}`;
+  $('hWord').onclick = async () => { try { dl(nom + '.docx', await wordDeMarkdown(hojaMd(s), {titulo: T3('Hoja de tratamiento|Treatment sheet|Folha de tratamento'), subtitulo: `${s.id || ''} · ${s.fecha}`, pie: T3('Generada con PautIA (Kit EstéticIA).|Generated with PautIA (EstéticIA Kit).|Gerada com o PautIA (Kit EstéticIA).')})); } catch (e) { toast(e.message, 7000); } };
+  $('hPrint').onclick = () => window.print();
+  $('hJson').onclick = () => dl(nom + '.json', JSON.stringify(sesionKit(s), null, 2), 'application/json');
+  $('hNueva').onclick = () => { if (!confirm(T3('¿Guardar esta sesión y empezar otra?|Save this session and start another?|Guardar esta sessão e começar outra?'))) return; if (!S.esEjemplo) { S.hist.unshift(JSON.parse(JSON.stringify(s))); S.hist = S.hist.slice(0, 100); } const med = s.medico; S.s = {...S0(), medico: med}; S.esEjemplo = false; SEL = null; guardaYa(); go(1); };
+  $$('[data-abre]').forEach(b => b.onclick = () => { const h = S.hist.splice(+b.dataset.abre, 1)[0]; if ((S.s.prods.length || S.s.pts.length) && !S.esEjemplo) S.hist.unshift(JSON.parse(JSON.stringify(S.s))); S.s = {...S0(), ...h}; S.esEjemplo = false; SEL = null; guardaYa(); go(3); });
+}
+
+/* ── ejemplo ── */
+function aplicaEjemplo() {
+  const s = S0(), X = T3;
+  Object.assign(s, {id: 'EJ-03', medico: X('Dra. Ejemplo|Dr Example|Dra. Exemplo'), kg: '62', tecnicas: X('Toxina botulínica, relleno de ácido hialurónico|Botulinum toxin, hyaluronic acid filler|Toxina botulínica, preenchimento de ácido hialurónico')});
+  const cad = n => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+  s.prods = [{id: 'tx', tipo: 'tox', nombre: X('Toxina A 100 U|Toxin A 100 U|Toxina A 100 U'), lote: 'EJ-2611', cad: cad(400), uVial: '100', mlDil: '2.5', nEnv: '1', mlEnv: ''},
+    {id: 'ah', tipo: 'ah', nombre: X('Ácido hialurónico volumen|Hyaluronic acid volume|Ácido hialurónico volume'), lote: 'EJ-4410', cad: cad(20), uVial: '', mlDil: '', nEnv: '1', mlEnv: '1'}];
+  const P = (z, i, prod, cant, plano, tecn) => { const [x, y] = centroZona(z, i); return {x, y, zona: z, prod, cant, plano: plano ? X(plano) : '', tecn: tecn ? X(tecn) : ''}; };
+  s.pts = [P('gla', 4, 'tx', '4', PLANOS[3]), P('gla', 0, 'tx', '4', PLANOS[3]), P('gla', 2, 'tx', '4', PLANOS[3]), P('fre', 3, 'tx', '2', PLANOS[3]), P('fre', 5, 'tx', '2', PLANOS[3]),
+    {...P('pat', 4, 'tx', '4', PLANOS[3]), x: 80}, {...P('pat', 4, 'tx', '4', PLANOS[3]), x: 220}, {x: 84, y: 204, zona: 'mal', prod: 'ah', cant: '0.4', plano: X(PLANOS[4]), tecn: X(TECNS[1])}, {x: 216, y: 204, zona: 'mal', prod: 'ah', cant: '0.4', plano: X(PLANOS[4]), tecn: X(TECNS[1])}, {x: 116, y: 236, zona: 'sng', prod: 'ah', cant: '0.2', plano: X(PLANOS[2]), tecn: X(TECNS[2])}];
+  s.activo = 'tx'; S.s = s; S.esEjemplo = true; SEL = null;
+}
+window.addEventListener('langchange', () => { if (S.esEjemplo) { aplicaEjemplo(); guarda(); (RENDER[step] || (() => {}))(); } });
+
+(async () => { const p = await cargaEstado(); if (p) S = {...S, ...p, s: {...S0(), ...(p.s || {})}}; iniciaUI(); go(0); })();
+
+</script>
+</body></html>
