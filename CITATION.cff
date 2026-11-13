@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "Si usas este software, cítalo con estos metadatos."
+title: "PautIA"
+type: software
+authors:
+  - family-names: "Borrás Rocher"
+    given-names: "Fernando"
+    affiliation: "Universidad Miguel Hernández de Elche"
+    orcid: "https://orcid.org/0000-0002-5519-4573"
+  - family-names: "Caride Miana"
+    given-names: "Elena"
+    affiliation: "Dra. Caride Medicina Estética & Antiaging"
+    orcid: "https://orcid.org/0000-0002-7620-4857"
+doi: "10.5281/zenodo.24196829"
+version: "1.0.0"
+date-released: "2026-11-13"
+url: "https://fborrasumh.github.io/pautia/"
+repository-code: "https://github.com/fborrasumh/pautia"
+license: MIT
